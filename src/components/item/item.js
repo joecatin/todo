@@ -1,3 +1,5 @@
+/* eslint-disable no-param-reassign */
+/* eslint-disable no-underscore-dangle */
 const withGetter = (dataObject) => ({
   get: (key) => {
     console.log(`key: ${key} was asked`);

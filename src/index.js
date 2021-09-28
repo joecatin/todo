@@ -16,6 +16,6 @@ const project = newProject({
 
 items.forEach((item) => project.add(newItem(item)));
 
-project.get("items").forEach((item) => console.log(item.get('title')));
+project.get('items').forEach((item) => console.log(item.get('title')));
 
-project.delete("Portuguese");
+project.delete('Portuguese');

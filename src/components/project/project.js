@@ -1,6 +1,6 @@
-const findItemindex = (items, title) => {
-  return items.findIndex((item) => item.get('title') === title);
-};
+/* eslint-disable no-param-reassign */
+/* eslint-disable no-underscore-dangle */
+const findItemindex = (items, title) => items.findIndex((item) => item.get('title') === title);
 
 const withGetter = (dataObject) => ({
   get: (key) => {
