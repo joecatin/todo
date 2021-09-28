@@ -1,17 +1,48 @@
-const canAdd = state => ({
-    add: (item) => { state.items.push(item) }
-})
+const findItemindex = (items, title) => {
+  return items.findIndex((item) => item.get('title') === title);
+};
 
-const canClear = state => ({
-    clear: () => { state.items = [] }
-})
+const withGetter = (dataObject) => ({
+  get: (key) => {
+    console.log(`key: ${key} was asked`);
+    return dataObject[key];
+  },
+});
 
+const withSetter = (dataObject) => ({
+  set: (key, value) => {
+    console.log(`key: ${key}, was set with value: ${value}`);
+    dataObject[key] = value;
+  },
+});
 
-const newProject = ( title, description, dueDate, priority ) => {
+const withItemsHandler = (dataObject) => ({
+  add: (item) => {
+    console.log(`item '${item.get('title')}' was added to project: ${dataObject.title}`);
+    dataObject.items.push(item);
+  },
+  delete: (title) => {
+    const index = findItemindex(dataObject.items, title);
+    if (index > -1) {
+      console.log(`item '${title}' has been removed from project: ${dataObject.title}`);
+      dataObject.items.splice(index, 1);
+    } else {
+      console.log(`item '${title}' was not found in project: ${dataObject.title}`);
+    }
+  },
+});
 
-    let state = { title, description, dueDate, priority, items: [] };
-    
-    return Object.assign(state, canAdd(state), canClear(state));
-}
+const newProject = (title, description, dueDate, priority) => {
+  const _instance = {};
+  const _data = {
+    ...title, ...description, ...dueDate, ...priority, items: [],
+  };
+  return Object.assign(
+    _instance,
+    withGetter(_data),
+    withSetter(_data),
+    withItemsHandler(_data),
+  );
+};
 
 export default newProject;

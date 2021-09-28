@@ -1,8 +1,25 @@
-const newItem = ({ title, description, dueDate, priority }) => {
+const withGetter = (dataObject) => ({
+  get: (key) => {
+    console.log(`key: ${key} was asked`);
+    return dataObject[key];
+  },
+});
 
-    let state = { title, description, dueDate, priority };
-    
-    return Object.assign(state);
-}
+const withSetter = (dataObject) => ({
+  set: (key, value) => {
+    console.log(`key: ${key}, was set with value: ${value}`);
+    dataObject[key] = value;
+  },
+});
+
+const newItem = (initialData) => {
+  const _instance = {};
+  const _data = { ...initialData };
+  return Object.assign(
+    _instance,
+    withGetter(_data),
+    withSetter(_data),
+  );
+};
 
 export default newItem;
