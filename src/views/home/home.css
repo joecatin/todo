@@ -1,0 +1,16 @@
+#home {
+    box-sizing: border-box;
+    width: 80%;
+    height: 100%;
+    margin: auto;
+    border: 5px solid red;
+    border-radius: 5px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#home > div {
+    margin: 3px;
+    width: 40%;
+}

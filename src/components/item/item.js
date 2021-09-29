@@ -14,9 +14,11 @@ const withSetter = (dataObject) => ({
   },
 });
 
-const newItem = (initialData) => {
+const newItem = (title, description, dueDate, priority) => {
   const _instance = {};
-  const _data = { ...initialData };
+  const _data = {
+    ...title, ...description, ...dueDate, ...priority,
+  };
   return Object.assign(
     _instance,
     withGetter(_data),
