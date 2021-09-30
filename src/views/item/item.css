@@ -11,19 +11,39 @@
   padding: 1%;
 }
 
-#title, #description {
+/* #item-title, #item-description {
   width: 100%;
   height: 30%;
+} */
+
+#item-title {
+  background-color: #eee;
+  color: #444;
+  text-align: left;
+  cursor: pointer;
+  outline: none;
 }
 
-#details {
+.item-active, #item-title:hover {
+  background-color: #ccc;
+}
+
+#item-content {
+  display: none;
+  background-color: #f1f1f1;
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.2s ease-out;
+}
+
+#item-details {
   width: 100%;
   height: 30%;
   display: flex;
   flex-direction: row;
 }
 
-#details > div {
+#item-details > div {
     width: 50%;
     height: 30%;
     text-align: center;
