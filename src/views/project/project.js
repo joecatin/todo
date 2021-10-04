@@ -1,45 +1,45 @@
 /* eslint-disable linebreak-style */
 import showItem from '../item/item';
+import { makeContent, makeTitle } from '../helpers/helpers';
 import './project.css';
 
-const showProject = (project) => {
-  const view = document.createElement('div');
-  view.id = 'project';
-
-  const title = document.createElement('div');
-  title.id = 'title';
-  title.textContent = project.get('title');
-  view.appendChild(title);
-
-  const description = document.createElement('div');
-  description.id = 'description';
-  description.textContent = project.get('description');
-  view.appendChild(description);
-
-  const details = document.createElement('div');
-  details.id = 'details';
-  const dueDate = document.createElement('div');
-  dueDate.id = 'dueDate';
-  dueDate.textContent = project.get('dueDate');
-  details.appendChild(dueDate);
-  const priority = document.createElement('div');
-  priority.id = 'priority';
-  priority.textContent = project.get('priority');
-  details.appendChild(priority);
-  view.appendChild(details);
-
+const makeProjectItems = (projectItems) => {
   const items = document.createElement('div');
-  items.id = 'items';
+  items.classList.add('project-items');
   const header = document.createElement('div');
-  header.textContent = 'in the pipe';
+  header.textContent = 'In the pipe:';
   items.appendChild(header);
-  project.get('items').forEach((item) => {
+  projectItems.forEach((item) => {
     const div = showItem(item);
     div.classList.add('item');
     items.appendChild(div);
   });
 
-  view.appendChild(items);
+  return items;
+};
+
+const makeProjectContent = (description, dueDate, priority, items) => {
+  const content = makeContent('project', description, dueDate, priority);
+  const todos = makeProjectItems(items);
+  content.appendChild(todos);
+
+  return content;
+};
+
+const showProject = (project) => {
+  const view = document.createElement('div');
+  view.classList.add('project');
+
+  const title = makeTitle(project.get('title'), 'project');
+  view.appendChild(title);
+
+  const content = makeProjectContent(
+    project.get('description'),
+    project.get('dueDate'),
+    project.get('priority'),
+    project.get('items'),
+  );
+  view.appendChild(content);
 
   return view;
 };
