@@ -1,7 +1,7 @@
 /* eslint-disable linebreak-style */
 
 import './item.css';
-import { makeContent, makeTitle } from '../helpers/helpers';
+import { makeContent, makeTitle } from '../helpers/globals';
 
 const showItem = (item) => {
   const view = document.createElement('div');
@@ -15,6 +15,7 @@ const showItem = (item) => {
     item.get('description'),
     item.get('dueDate'),
     item.get('priority'),
+    item.get('status'),
   );
   view.appendChild(content);
 

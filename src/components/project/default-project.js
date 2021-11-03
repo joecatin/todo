@@ -9,6 +9,7 @@ const project = newProject({
   description: 'Dummy project',
   dueDate: format(new Date(2021, 11, 31), 'yyyy-M-d'),
   priority: 'uncertain',
+  status: 'pending',
 });
 
 items.forEach((item) => project.add(newItem(item)));

@@ -4,7 +4,6 @@
 /* eslint-disable eol-last */
 
 export const makeElement = (type, className, content) => {
-  // console.log(`content from makeElement function: ${content}`);
   const element = document.createElement(type);
   element.classList.add(className);
   element.innerHTML = content;
@@ -52,8 +51,6 @@ export const makeTitle = (text, type) => {
 };
 
 const makeDetails = (type, date, level) => {
-  // console.log(`type of element from makeDetails function: ${type}`);
-  // console.log(`type of element from makeDetails function: ${date}`);
   const details = document.createElement('div');
   details.classList.add(`${type}-details`);
   const dueDate = makeElement('div', `${type}-dueDate`, date);
@@ -63,7 +60,24 @@ const makeDetails = (type, date, level) => {
   return details;
 };
 
-export const makeContent = (type, inner, date, level) => {
+const makeControls = (type, done) => {
+  const controls = document.createElement('div');
+  controls.classList.add(`${type}-controls`);
+
+  const clear = makeElement('div', `${type}-clear`, 'clear');
+  controls.appendChild(clear);
+  const status = makeElement(
+    'div', `${type}-status`, done ? 'done' : 'open',
+  );
+  controls.appendChild(status);
+
+  const remove = makeElement('div', `${type}-`, 'delete');
+  controls.appendChild(remove);
+
+  return controls;
+};
+
+export const makeContent = (type, inner, date, level, status) => {
   const content = document.createElement('div');
   content.classList.add(`${type}-content`);
   const description = makeElement('div', `${type}-description`, inner);
@@ -71,6 +85,9 @@ export const makeContent = (type, inner, date, level) => {
 
   const details = makeDetails(type, date, level);
   content.appendChild(details);
+
+  const controls = makeControls('item', status);
+  content.appendChild(controls);
 
   return content;
 };

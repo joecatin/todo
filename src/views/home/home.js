@@ -8,10 +8,10 @@ const Home = () => {
   home.id = 'home';
 
   home.appendChild(showProject(project));
-  // home.appendChild(showProject(project));
-  // home.appendChild(showProject(project));
-  // home.appendChild(showProject(project));
-  // home.appendChild(showProject(project));
+  home.appendChild(showProject(project));
+  home.appendChild(showProject(project));
+  home.appendChild(showProject(project));
+  home.appendChild(showProject(project));
 
   return home;
 };

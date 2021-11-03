@@ -43,15 +43,23 @@
   transition: max-height 0.2s ease-out;
 }
 
-.item-details {
+.item-details, .item-controls {
   width: 100%;
   height: 30%;
   display: flex;
   flex-direction: row;
 }
 
-.item-details > div {
-    width: 50%;
-    height: 30%;
-    text-align: center;
+.item-controls {
+  justify-content: flex-end;
+}
+
+.item-details > div, .item-controls > div {
+  width: 50%;
+  height: 30%;
+  text-align: center;
+}
+
+.item-controls > div {
+  width: calc(100%/3/3);
 }
