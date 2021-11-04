@@ -1,6 +1,6 @@
 /* eslint-disable linebreak-style */
 
-import { makeTitle } from '../helpers/globals';
+import { makeTitle } from '../helpers/utils';
 import { makeContent } from '../helpers/lists';
 import './project.css';
 

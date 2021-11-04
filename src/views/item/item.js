@@ -1,7 +1,7 @@
 /* eslint-disable linebreak-style */
 
 import './item.css';
-import { makeContent, makeTitle } from '../helpers/globals';
+import { makeContent, makeTitle } from '../helpers/utils';
 
 const showItem = (item) => {
   const view = document.createElement('div');

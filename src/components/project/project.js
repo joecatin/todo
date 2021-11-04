@@ -3,24 +3,15 @@
 const findItemindex = (items, title) => items.findIndex((item) => item.get('title') === title);
 
 const withGetter = (dataObject) => ({
-  get: (key) => {
-    console.log(`key: ${key} was asked`);
-    return dataObject[key];
-  },
+  get: (key) => dataObject[key],
 });
 
 const withSetter = (dataObject) => ({
-  set: (key, value) => {
-    console.log(`key: ${key}, was set with value: ${value}`);
-    dataObject[key] = value;
-  },
+  set: (key, value) => { dataObject[key] = value; },
 });
 
 const withItemsHandler = (dataObject) => ({
-  add: (item) => {
-    console.log(`item '${item.get('title')}' was added to project: ${dataObject.title}`);
-    dataObject.items.push(item);
-  },
+  add: (item) => dataObject.items.push(item),
   delete: (title) => {
     const index = findItemindex(dataObject.items, title);
     if (index > -1) {

@@ -8,8 +8,8 @@ const project = newProject({
   title: 'Mock',
   description: 'Dummy project',
   dueDate: format(new Date(2021, 11, 31), 'yyyy-M-d'),
-  priority: 'uncertain',
-  status: 'pending',
+  priority: 'moderate',
+  status: 'open',
 });
 
 items.forEach((item) => project.add(newItem(item)));

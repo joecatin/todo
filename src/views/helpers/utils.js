@@ -60,16 +60,15 @@ const makeDetails = (type, date, level) => {
   return details;
 };
 
-const makeControls = (type, done) => {
+const makeControls = (type, status) => {
   const controls = document.createElement('div');
   controls.classList.add(`${type}-controls`);
 
   const clear = makeElement('div', `${type}-clear`, 'clear');
   controls.appendChild(clear);
-  const status = makeElement(
-    'div', `${type}-status`, done ? 'done' : 'open',
-  );
-  controls.appendChild(status);
+
+  const statusElement = makeElement('div', `${type}-status`, status);
+  controls.appendChild(statusElement);
 
   const remove = makeElement('div', `${type}-`, 'delete');
   controls.appendChild(remove);
@@ -86,7 +85,7 @@ export const makeContent = (type, inner, date, level, status) => {
   const details = makeDetails(type, date, level);
   content.appendChild(details);
 
-  const controls = makeControls('item', status);
+  const controls = makeControls(type, status);
   content.appendChild(controls);
 
   return content;

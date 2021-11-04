@@ -5,7 +5,7 @@
 /* eslint-disable import/prefer-default-export */
 
 import showItem from '../item/item';
-import { makeContent as makeMainContent } from './globals';
+import { makeContent as makeMainContent } from './utils';
 
 export const makeItems = (type, items) => {
   const todos = document.createElement('div');
