@@ -1,6 +1,9 @@
-import Home from './views/home/home';
+/* eslint-disable import/no-extraneous-dependencies */
+
 import './index.css';
+import Home from './views/home';
+// import populate from './others/populate';
 
-const home = Home();
+// populate();
 
-document.body.appendChild(home);
+Home().then((home) => document.body.appendChild(home));
