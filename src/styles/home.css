@@ -1,0 +1,36 @@
+#home {
+    width: 80vw;
+    height: 100%;
+    margin: auto;
+}
+
+.home-all-projects {
+    box-sizing: border-box;
+    height: 85%;
+    margin: auto;
+    overflow: auto; 
+    border: 5px solid red;
+    border-radius: 5px;
+    display: flex;
+    justify-content: space-around;
+    align-items: flex-start;
+    flex-wrap: wrap;
+}
+
+.home-all-projects > div {
+    margin: 3px;
+    width: 30vw;
+}
+
+.home-controls {
+    box-sizing: border-box;
+    height: 10%;
+    margin: auto;
+    margin-bottom: 5px;
+    overflow: auto; 
+    border: 5px solid orange;
+    border-radius: 5px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}

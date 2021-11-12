@@ -1,0 +1,29 @@
+.form-add-item {
+    box-sizing: border-box;
+    margin: auto;
+    width: calc(100%/3);
+    height: 90%;
+    border: 3px solid indianred;
+    border-radius: 10px;
+    background-color: #eee;
+    padding: 10px;
+}
+
+::placeholder {
+    color: inherit;
+    font: inherit;
+  }
+
+.form-add-item div {
+    box-sizing: border-box;
+    position: relative;
+    margin: auto;
+    margin-top: 5px;
+    margin-bottom: 5px;
+    width: 100%;
+    height: calc(100%/4);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}

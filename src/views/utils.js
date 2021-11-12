@@ -3,12 +3,21 @@
 /* eslint-disable no-plusplus */
 /* eslint-disable eol-last */
 /* eslint-disable no-use-before-define */
+/* eslint-disable object-curly-newline */
+/* eslint-disable no-shadow */
+/* eslint-disable no-unused-vars */
 
 import { format } from 'date-fns';
+import { initializeApp } from 'firebase/app';
+import { getFirestore, collection, onSnapshot, query } from 'firebase/firestore';
+import firebaseConfig from '../config/firebase';
+import { get, remove } from '../components/project';
 import Item from '../components/item';
-import { remove } from '../components/project';
-import './project.css';
-import './item.css';
+import '../styles/project.css';
+import '../styles/item.css';
+
+initializeApp(firebaseConfig);
+const db = getFirestore();
 
 export const makeID = () => {
   let id = Math.random().toString(36).substring(2, 12);
@@ -148,7 +157,13 @@ const makeItems = (type, items) => {
   todos.classList.add(`${type}-items`);
 
   const header = document.createElement('div');
-  header.textContent = 'In the pipe:';
+  header.classList.add(`${type}-items-header`);
+  const headline = document.createElement('div');
+  headline.textContent = 'In the pipe:';
+  header.appendChild(headline);
+  const add = document.createElement('div');
+  add.textContent = 'add';
+  header.appendChild(add);
   todos.appendChild(header);
 
   items.forEach((item) => {
@@ -180,3 +195,20 @@ export function makeContent(type, description, items = null, date, priority, sta
 
   return content;
 }
+
+export const showProjects = async () => {
+  const projects = document.getElementById('projects');
+  // console.log(projects);
+  projects.innerHTML = '';
+  projects.classList.remove('home-new-project');
+  projects.classList.add('home-all-projects');
+
+  const q = query(collection(db, 'projects'));
+  const unsubscribe = onSnapshot(q, (querySnapshot) => {
+    projects.innerHTML = '';
+    querySnapshot.forEach((doc) => {
+      const project = get(doc.id);
+      project.then((project) => projects.appendChild(showProject(project)));
+    });
+  });
+};

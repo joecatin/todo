@@ -76,3 +76,10 @@
 .project-items > div {
   padding: 3px;
 }
+
+.project-items-header {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+

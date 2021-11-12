@@ -55,9 +55,9 @@ const withTodosHandler = (dataObject) => ({
   },
 });
 
-const Project = ({ id, title, description, dueDate, priority, status, todos = [] }) => {
+export const Project = ({ title, description, dueDate, priority, status, id = '', todos = [] }) => {
   const _instance = {};
-  const _data = { id, title, description, dueDate, priority, status, todos };
+  const _data = { title, description, dueDate, priority, status, id, todos };
   return Object.assign(
     _instance,
     withGetter(_data),
@@ -97,7 +97,12 @@ export const remove = async (projectID, todoID = null) => {
   }
 };
 
-export const add = async (project) => {
-  const ref = collection(db, 'projects').withConverter(projectConverter);
-  await addDoc(ref, project);
+export const add = async (project, todo = null) => {
+  if (todo === null) {
+    const ref = collection(db, 'projects').withConverter(projectConverter);
+    // console.log(project.get('dueDate'));
+    await addDoc(ref, project);
+  } else {
+    project.add(todo);
+  }
 };
