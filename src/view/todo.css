@@ -1,0 +1,26 @@
+.todo {
+    border: 3px solid pink;
+}
+
+.project-todo {
+    border: 3px solid blue;
+    margin: 3px;
+}
+
+.project-todos {
+    box-sizing: border-box;
+    width: 100%;
+    height: 40%;
+    display: flex;
+    flex-direction: column;
+}
+
+.project-todos > div {
+    padding: 3px;
+}
+
+.project-todos-header {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}

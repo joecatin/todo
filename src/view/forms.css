@@ -23,7 +23,7 @@
     font: inherit;
   }
 
-.form-add div {
+.form-add div, .form-add input {
     box-sizing: border-box;
     position: relative;
     margin: auto;
@@ -64,7 +64,7 @@
     font: inherit;
   }
 
-.form-edit div {
+.form-edit div, .form-edit input {
     box-sizing: border-box;
     position: relative;
     margin: auto;
@@ -76,4 +76,14 @@
     justify-content: center;
     align-items: center;
     text-align: center;
+}
+
+label {
+    /* float: left; */
+    width: 20%;
+}
+
+select {
+    float: right;
+    width: 80%;
 }

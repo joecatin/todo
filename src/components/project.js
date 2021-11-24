@@ -1,10 +1,12 @@
 /* eslint-disable linebreak-style */
-/* eslint-disable object-curly-newline */
-/* eslint-disable no-shadow */
 /* eslint-disable no-param-reassign */
 /* eslint-disable no-plusplus */
-/* eslint-disable prefer-template */
-/* eslint-disable no-underscore-dangle */
+/* eslint-disable eol-last */
+/* eslint-disable no-use-before-define */
+/* eslint-disable object-curly-newline */
+/* eslint-disable no-shadow */
+/* eslint-disable no-unused-vars */
+/* eslint-disable import/no-cycle */
 
 import { initializeApp } from 'firebase/app';
 import {
@@ -12,6 +14,7 @@ import {
   doc, getDoc, updateDoc,
 } from 'firebase/firestore';
 import firebaseConfig from '../config/firebase';
+import { sort } from '../others/utils';
 
 initializeApp(firebaseConfig);
 const db = getFirestore();
@@ -42,16 +45,11 @@ const withGeneralHandler = (dataObject) => ({
 });
 
 const withTodosHandler = (dataObject) => ({
-  add: async (todo) => {
-    dataObject.todos.push(todo);
-    const { id, ...project } = dataObject;
-    await updateDoc(doc(db, 'projects', id), project);
-  },
-  delete: async (todoID) => {
-    const i = findItemindex(dataObject.todos, todoID);
+  sort: (by, desc = true) => sort(dataObject.todos, by, desc),
+  add: (todo) => dataObject.todos.push(todo),
+  delete: (id) => {
+    const i = findItemindex(dataObject.todos, id);
     dataObject.todos.splice(i, 1);
-    const { id, ...project } = dataObject;
-    await updateDoc(doc(db, 'projects', id), project);
   },
 });
 

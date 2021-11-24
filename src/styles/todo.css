@@ -1,30 +1,31 @@
-.project {
+.project-todo {
   box-sizing: border-box;
-  border: 3px solid green;
+  margin-top: 3px;
+  margin-bottom: 3px;
+  border: 3px solid blue;
   border-radius: 5px;
   display: flex;
   flex-direction: column;
   justify-content: space-around;
 }
-  
-.project > div {
+
+.project-todo > div {
   padding: 1%;
 }
-  
-.project-title {
+
+.project-todo-title {
   background-color: #eee;
   color: #444;
   text-align: left;
   cursor: pointer;
   outline: none;
-  margin: 1%;
 }
 
-.project-active, .project-title:hover {
+.project-todo-active, .project-todo-title:hover {
   background-color: #ccc;
 }
 
-.project-title:after {
+.project-todo-title:after {
   content: '\02795'; /* Unicode character for "plus" sign (+) */
   font-size: 13px;
   color: white;
@@ -32,11 +33,11 @@
   margin-left: 5px;
 }
 
-.project-active:after {
+.project-todo-active:after {
   content: "\2796"; /* Unicode character for "minus" sign (-) */
 }
-
-.project-content {
+ 
+.project-todo-content {
   display: none;
   background-color: #f1f1f1;
   max-height: 0;
@@ -44,42 +45,23 @@
   transition: max-height 0.2s ease-out;
 }
 
-.project-details, .project-controls {
+.project-todo-details, .project-todo-controls {
   width: 100%;
-  height: 20%;
+  height: 30%;
   display: flex;
   flex-direction: row;
 }
 
-.project-controls {
+.project-todo-controls {
   justify-content: flex-end;
 }
 
-.project-details > div, .project-controls > div {
+.project-todo-details > div, .project-todo-controls > div {
   width: 50%;
-  height: 100%;
+  height: 30%;
   text-align: center;
 }
 
-.project-controls > div {
+.project-todo-controls > div {
   width: calc(100%/3/3);
 }
-
-.project-todos {
-  box-sizing: border-box;
-  width: 100%;
-  height: 40%;
-  display: flex;
-  flex-direction: column;
-}
-
-.project-todos > div {
-  padding: 3px;
-}
-
-.project-todos-header {
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-}
-

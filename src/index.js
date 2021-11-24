@@ -1,17 +1,24 @@
-/* eslint-disable import/no-extraneous-dependencies */
+/* eslint-disable linebreak-style */
+/* eslint-disable no-param-reassign */
+/* eslint-disable no-plusplus */
+/* eslint-disable eol-last */
+/* eslint-disable no-use-before-define */
+/* eslint-disable object-curly-newline */
+/* eslint-disable no-shadow */
+/* eslint-disable no-unused-vars */
+/* eslint-disable import/no-cycle */
+/* eslint-disable import/prefer-default-export */
 
-import './styles/index.css';
-import { addYears, format } from 'date-fns';
-import Home from './views/home';
-import { showProjects } from './views/utils';
+import showHome from './view/home';
+import { getProjects } from './model/firestore';
+import './index.css';
+import './view/home.css';
+import './view/item.css';
+import './view/project.css';
+import './view/todo.css';
 // import populate from './others/populate';
-// populate();
+// populate('todos');
 
-const today = new Date();
+export const projects = await getProjects();
 
-console.log(format(addYears(today, 1), 'yyyy-MM-dd'));
-
-Home().then((home) => {
-  document.body.appendChild(home);
-  showProjects();
-});
+showHome('project', 'dueDate', true);

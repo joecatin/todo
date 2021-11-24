@@ -6,6 +6,9 @@ module.exports = {
   // mode: 'production',
   mode: 'development',
   devtool: 'inline-source-map',
+  experiments: {
+    topLevelAwait: true,
+  },
   plugins: [
     new HtmlWebpackPlugin({
       title: 'in the pipe',

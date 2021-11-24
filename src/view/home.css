@@ -4,7 +4,20 @@
     margin: auto;
 }
 
-.home-projects {
+.home-controls {
+    box-sizing: border-box;
+    height: 10%;
+    margin: auto;
+    margin-bottom: 5px;
+    overflow: auto; 
+    border: 5px solid orange;
+    border-radius: 5px;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+}
+
+.home-items {
     box-sizing: border-box;
     height: 85%;
     margin: auto;
@@ -16,7 +29,7 @@
     flex-direction: column;
 }
 
-.home-projects-list {
+.home-items-list {
     box-sizing: inherit;
     width: 100%;
     margin: auto;
@@ -29,20 +42,7 @@
     flex-wrap: wrap;
 }
 
-.home-projects-list > div {
+.home-items-list > div {
     margin: 3px;
-    width: 30vw;
-}
-
-.home-controls {
-    box-sizing: border-box;
-    height: 10%;
-    margin: auto;
-    margin-bottom: 5px;
-    overflow: auto; 
-    border: 5px solid orange;
-    border-radius: 5px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    width: 45%;
 }
