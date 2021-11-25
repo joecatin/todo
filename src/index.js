@@ -10,7 +10,9 @@
 /* eslint-disable import/prefer-default-export */
 
 import showHome from './view/home';
-import { getProjects } from './model/firestore';
+import { showAddItem } from './view/forms';
+import { showItems, switchProjectsTodos } from './view/utils';
+import { projects } from './model/firestore';
 import './index.css';
 import './view/home.css';
 import './view/item.css';
@@ -19,6 +21,10 @@ import './view/todo.css';
 // import populate from './others/populate';
 // populate('todos');
 
-export const projects = await getProjects();
-
 showHome('project', 'dueDate', true);
+document.getElementById('home-controls-switch')
+  .addEventListener('click', switchProjectsTodos);
+document.getElementById('home-controls-add')
+  .addEventListener('click', showAddItem);
+
+showItems(projects.getProjects(), 'project', 'dueDate', true);

@@ -13,15 +13,21 @@
 import { initializeApp } from 'firebase/app';
 import {
   addDoc, getFirestore, collection, deleteDoc, doc, getDoc,
-  getDocs, query, recursiveDelete, where,
+  getDocs, query, writeBatch,
 } from 'firebase/firestore';
 import firebaseConfig from '../config/firebase';
-import showHome from '../view/home';
-import { asyncForEach } from './utils';
+import { Projects } from './projects';
+
 
 initializeApp(firebaseConfig);
 const db = getFirestore();
 const col = 'todos';
+
+const asyncForEach = async (array, callback) => {
+  for (let index = 0; index < array.length; index++) {
+    await callback(array[index], index, array);
+  }
+};
 
 export const getItems = async (type) => {
   switch (type) {
@@ -75,19 +81,19 @@ const getTodos = async () => {
   const todos = [];
 
   await asyncForEach(projects, async (project) => {
-    const projectTodos = await fetchProjectTodos(project.id);
-    projectTodos.forEach((todo) => todos.push({ projectTitle: project.title, ...todo }));
+    const projectTodos = await fetchProjectTodos(project.id, project.title);
+    projectTodos.forEach((todo) => todos.push({ ...todo }));
   });
 
   return todos;
 };
 
-const fetchProjectTodos = async (projectId) => {
+const fetchProjectTodos = async (projectId, projectTitle) => {
   const colRef = collection(db, `${col}/${projectId}/todos`);
   const todos = [];
   await getDocs(colRef).then((snapshot) => {
     snapshot.docs.forEach((doc) => {
-      todos.push({ type: 'todo', projectId, id: doc.id, ...doc.data() });
+      todos.push({ type: 'todo', projectId, projectTitle, id: doc.id, ...doc.data() });
     });
   });
   return todos;
@@ -104,31 +110,12 @@ export const fetchProjects = async () => {
   return projects;
 };
 
-export const deleteItem = async (e) => {
-  const item = e.target;
-  const home = document.getElementById('home');
-
-  switch (item.type) {
-    case 'project': {
-      await deleteDoc(doc(db, col, item.id)); break;
-    }
-    case 'project-todo':
-    case 'todo': {
-      await deleteDoc(doc(db, col, item.projectId, 'todos', item.id)); break;
-    }
-    default: console.log('deleteItem: something went wrong.');
-  }
-
-  await showHome(home.type, home.by, home.desc);
-  return item.id;
-};
-
-export const deleteTodo = async (projectId, todoId) => {
+export const deleteTodoFromFirestore = async (projectId, todoId) => {
   await deleteDoc(doc(db, col, projectId, 'todos', todoId));
   return todoId;
 };
 
-export const deleteProject = async (projectId) => {
+export const deleteProjectFromFirestore = async (projectId) => {
   const q = query(collection(db, col, projectId, 'todos'));
   const todos = await getDocs(q);
   todos.forEach(async (todo) => {
@@ -145,3 +132,14 @@ export const addItemToFirestore = async (type, projectId = null, props) => {
 
   return docRef.id;
 };
+
+export const setProjectProps = async (id, props) => {
+  const batch = writeBatch(db);
+
+  const project = doc(db, col, id);
+  batch.update(project, props);
+
+  await batch.commit();
+};
+
+export const projects = Projects(...await getProjects());

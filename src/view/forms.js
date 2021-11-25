@@ -153,10 +153,6 @@ const makeAddItemForm = (type) => {
 
 const sortHideItemControls = (control, type, show = true) => {
   control.textContent = (show) ? 'cancel' : 'add';
-  console.log(control);
-  console.log(type);
-  console.log(show);
-  console.log('sortHideItemControls');
 
   switch (type) {
     case 'home': {
