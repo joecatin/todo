@@ -12,7 +12,7 @@
 import { format, isThursday } from 'date-fns';
 import { showAddItem, showEditItem } from './forms';
 import { sort, sortedIndex } from '../model/utils';
-import { deleteProject, deleteTodo, getItems } from '../model/firestore';
+import { deleteProject, deleteTodo, getItems, projects } from '../model/firestore';
 
 export const getHomeType = () => {
   const home = document.getElementById('home');
@@ -378,9 +378,14 @@ export const addItemToItemsList = (item) => {
 export const switchProjectsTodos = async (e) => {
   const switchDiv = document.getElementById('home-controls-switch');
   let { type } = e.target;
+  let items = null;
 
   const { by, desc } = document.getElementById('home');
-  const items = await getItems(type);
+  switch (type) {
+    case 'project': { items = projects.getProjects(); break; }
+    case 'todo': { items = projects.getTodos(); break; }
+    default: console.log(`switchProjectsTodos: sorry, we are out of ${type}.`);
+  }
   showItems(items, type, ...[by, desc]);
   setHomeType(type);
 
