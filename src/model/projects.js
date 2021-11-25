@@ -65,11 +65,7 @@ const withProjectHandler = (projects) => ({
 
     return true;
   },
-  AddProject: (project) => {
-    projects.push(project);
-
-    return true;
-  },
+  addProject: (project) => { projects.push(project); return true; },
 });
 
 const withTodosHandler = (projects) => ({
@@ -79,6 +75,17 @@ const withTodosHandler = (projects) => ({
 
     return todos;
   },
+  getTodosProp: (projectId, key) => {
+    const props = [];
+    const projectIndex = findItemindex(projects, projectId);
+    const project = projects[projectIndex];
+    project.todos.forEach((todo) => props.push(todo[key]));
+
+    return props;
+  },
+});
+
+const withTodoHandler = (projects) => ({
   getTodo: (projectId, todoId) => {
     const projectIndex = findItemindex(projects, projectId);
     const project = projects[projectIndex];
@@ -92,14 +99,6 @@ const withTodosHandler = (projects) => ({
     const todoIndex = findItemindex(project.todos, todoId);
 
     return projects[projectIndex].todos[todoIndex][key];
-  },
-  getTodosProp: (projectId, key) => {
-    const props = [];
-    const projectIndex = findItemindex(projects, projectId);
-    const project = projects[projectIndex];
-    project.todos.forEach((todo) => props.push(todo[key]));
-
-    return props;
   },
   setTodo: (projectId, todoId, todo) => {
     const projectIndex = findItemindex(projects, projectId);
@@ -144,5 +143,6 @@ export const Projects = (...projects) => {
     withProjectsHandler(_data),
     withProjectHandler(_data),
     withTodosHandler(_data),
+    withTodoHandler(_data),
   );
 };

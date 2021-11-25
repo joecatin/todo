@@ -26,6 +26,8 @@ const showAlertInForm = (form, element, text) => {
 const checkTitle = (titles, title) => !titles.includes(title);
 
 const validateFormAddTodoTitle = (projectId, e) => {
+  console.log(projects);
+  console.log(projectId);
   const titles = projects.getTodosProp(projectId, 'title');
 
   const valid = checkTitle(titles, e.target.title.value);

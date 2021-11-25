@@ -9,10 +9,10 @@
 /* eslint-disable import/no-cycle */
 /* eslint-disable default-case */
 
-import { format, isThursday } from 'date-fns';
+import { format } from 'date-fns';
 import { showAddItem, showEditItem } from './forms';
 import { sort, sortedIndex } from '../model/utils';
-import { deleteProject, deleteTodo, getItems, projects } from '../model/firestore';
+import { addItemToFirestore, deleteProject, deleteTodo, projects } from '../model/firestore';
 
 export const getHomeType = () => {
   const home = document.getElementById('home');
@@ -373,6 +373,25 @@ export const addItemToItemsList = (item) => {
     case 'add-todo-project': { addTodoToProjectTodosList(item); break; }
     default: console.log(`addItemToItemsList: sorry, we are out of ${type}.`);
   }
+};
+
+export const addItem = async (type, item, projectId = null) => {
+  const itemId = await addItemToFirestore(
+    type.match(/(?<=-)\w+(?=-)/)[0], projectId, item,
+  );
+
+  item = { id: itemId, ...item };
+  switch (type.match(/(?<=-)\w+(?=-)/)[0]) {
+    case 'project': { projects.addProject(item); break; }
+    case 'todo': { projects.addTodo(projectId, item); break; }
+    default:
+      console.log(`AddItem: sorry, we are out of ${type.match(/(?<=-)\w+(?=-)/)[0]}.`);
+  }
+
+  item = { type, ...item };
+  addItemToItemsList(item);
+
+  return itemId;
 };
 
 export const switchProjectsTodos = async (e) => {

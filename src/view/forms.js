@@ -10,15 +10,11 @@
 
 import { Timestamp } from 'firebase/firestore';
 import { addYears, format } from 'date-fns';
-import { makeID } from '../others/utils';
-import { getProjectIdByProp } from '../model/utils';
 import { validateForm } from '../model/forms';
-import { add, get, Project } from '../components/project';
-import { addItemToFirestore, getProjectsProp } from '../model/firestore';
+import { getProjectsProp, projects } from '../model/firestore';
 import {
-  addItemToItemsList, adjustHeight, getHomeType, showItem,
+  addItem, addItemToItemsList, adjustHeight, getHomeType, showItem,
 } from './utils';
-import showHome from './home';
 import './forms.css';
 
 const priorityLevels = ['high', 'medium', 'low'];
@@ -165,7 +161,6 @@ const sortHideItemControls = (control, type, show = true) => {
       break;
     }
     case 'project': {
-      console.log('case project called here');
       control.removeEventListener(
         'click', (show) ? showAddItem : hideAddTodoFromProject,
       );
@@ -238,13 +233,13 @@ const makeItem = (e) => ({
   status: 'open',
 });
 
-const addProjectIdToTodoItem = async (e, location, item) => {
+const addProjectIdToTodoItem = (e, location, item) => {
   let projectId = null;
   switch (location) {
     case 'home': {
       const projectTitle = e.target.project.value;
       item = { projectTitle, ...item };
-      projectId = await getProjectIdByProp('title', projectTitle);
+      projectId = projects.getProjectIdByProp('title', projectTitle);
       break;
     }
     case 'project': {
@@ -263,29 +258,23 @@ const processAddItem = async (e) => {
   e.preventDefault();
 
   const { type } = e.target;
-  let item = makeItem(e);
-  let projectId = null;
+  let item = makeItem(e); let projectId = null;
 
   if (!validateForm(type, e)) return false;
 
   const location = type.match(/(?<=-)\w+$/)[0];
 
   if (/todo/.test(type)) {
-    item = await addProjectIdToTodoItem(e, location, item);
+    item = addProjectIdToTodoItem(e, location, item);
     projectId = item.projectId;
   }
 
-  const itemId = await addItemToFirestore(
-    type.match(/(?<=-)\w+(?=-)/)[0], projectId, item,
-  );
-  item = { type, id: itemId, ...item };
-  addItemToItemsList(item);
+  const itemId = await addItem(type, item, projectId);
 
   switch (location) {
     case 'home': { hideAddItemFromHome(); break; }
     case 'project': { hideAddTodoFromProject(e); break; }
-    default:
-      console.log(`processAddItem: sorry, we are out of ${location}.`);
+    default: console.log(`processAddItem: sorry, we are out of ${location}.`);
   }
 
   return itemId;
