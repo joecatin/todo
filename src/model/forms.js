@@ -26,9 +26,8 @@ const showAlertInForm = (form, element, text) => {
 const checkTitle = (titles, title) => !titles.includes(title);
 
 const validateFormAddTodoTitle = (projectId, e) => {
-  console.log(projects);
-  console.log(projectId);
   const titles = projects.getTodosProp(projectId, 'title');
+  if (titles.length === 0) return true;
 
   const valid = checkTitle(titles, e.target.title.value);
   if (valid) return true;
@@ -38,7 +37,7 @@ const validateFormAddTodoTitle = (projectId, e) => {
   return false;
 };
 
-const checkTodoDueDate = (projectDueDate, TodoDueDate) => projectDueDate > TodoDueDate;
+const checkTodoDueDate = (projectDueDate, TodoDueDate) => projectDueDate >= TodoDueDate;
 
 const validateFormAddTodoDate = (projectId, e) => {
   const projectDueDate = projects.getProjectProp(projectId, 'dueDate');

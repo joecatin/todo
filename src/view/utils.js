@@ -12,7 +12,10 @@
 import { format } from 'date-fns';
 import { showAddItem, showEditItem } from './forms';
 import { sort, sortedIndex } from '../model/utils';
-import { addItemToFirestore, deleteProject, deleteTodo, projects } from '../model/firestore';
+import {
+  addItemToFirestore, deleteProjectFromFirestore, deleteTodoFromFirestore,
+  projects,
+} from '../model/firestore';
 
 export const getHomeType = () => {
   const home = document.getElementById('home');
@@ -87,7 +90,7 @@ const makeControls = (type, id, status, projectId) => {
   del.type = type;
   del.id = id;
   del.projectId = projectId;
-  del.addEventListener('click', removeItem);
+  del.addEventListener('click', deleteItem);
   controls.appendChild(del);
 
   return controls;
@@ -376,20 +379,19 @@ export const addItemToItemsList = (item) => {
 };
 
 export const addItem = async (type, item, projectId = null) => {
-  const itemId = await addItemToFirestore(
-    type.match(/(?<=-)\w+(?=-)/)[0], projectId, item,
-  );
+  const itemType = type.match(/(?<=-)\w+(?=-)/)[0];
+  const itemId = await addItemToFirestore(itemType, projectId, item);
 
-  item = { id: itemId, ...item };
-  switch (type.match(/(?<=-)\w+(?=-)/)[0]) {
+  item = { type, id: itemId, ...item };
+  addItemToItemsList(item);
+
+  item.type = itemType;
+  switch (itemType) {
     case 'project': { projects.addProject(item); break; }
     case 'todo': { projects.addTodo(projectId, item); break; }
     default:
-      console.log(`AddItem: sorry, we are out of ${type.match(/(?<=-)\w+(?=-)/)[0]}.`);
+      console.log(`AddItem: sorry, we are out of ${itemType}.`);
   }
-
-  item = { type, ...item };
-  addItemToItemsList(item);
 
   return itemId;
 };
@@ -418,32 +420,31 @@ export const switchProjectsTodos = async (e) => {
   return true;
 };
 
-export const removeItemFromHomeItemsList = (e) => {
+const deleteProject = async (id) => {
+  await deleteProjectFromFirestore(id);
+  projects.deleteProject(id);
 
+  return id;
 };
 
-export const removeTodoFromProjectTodosList = (e) => {
+const deleteTodo = async (projectId, id) => {
+  await deleteTodoFromFirestore(projectId, id);
+  projects.deleteTodo(projectId, id);
 
+  return id;
 };
 
-export const removeProject = async (e) => {
-
-};
-
-export const removeTodo = async (e) => {
-
-};
-
-const removeItem = async (e) => {
+const deleteItem = async (e) => {
   const { id, type } = e.target;
   const list = e.target.closest('div[class$=list]');
 
   switch (type) {
     case 'project': { await deleteProject(id); break; }
     case 'todo': { const { projectId } = e.target; await deleteTodo(projectId, id); break; }
-    default: console.log(`removeItem: sorry, we are out of ${type}.`);
+    default: console.log(`deleteItem: sorry, we are out of ${type}.`);
   }
-  const item = list.querySelector(`#${id}`);
+
+  const item = document.getElementById(id);
   item.remove();
 
   return id;

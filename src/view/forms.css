@@ -87,3 +87,7 @@ select {
     float: right;
     width: 80%;
 }
+
+input:invalid + span::after {
+    content: '✖';
+  }

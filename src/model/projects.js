@@ -61,11 +61,13 @@ const withProjectHandler = (projects) => ({
     return true;
   },
   deleteProject: (id) => {
-    projects = projects.filter((project) => project.id !== id);
+    const projectIndex = findItemindex(projects, id);
+    projects.splice(projectIndex, 1);
+    // delete projects[projectIndex];
 
-    return true;
+    return id;
   },
-  addProject: (project) => { projects.push(project); return true; },
+  addProject: (project) => { console.log('addProject called.'); projects.push(project); return project.id; },
 });
 
 const withTodosHandler = (projects) => ({
@@ -120,7 +122,7 @@ const withTodoHandler = (projects) => ({
     const projectIndex = findItemindex(projects, projectId);
     projects[projectIndex].todos.push(todo);
 
-    return true;
+    return todo.id;
   },
   deleteTodo: (projectId, todoId) => {
     const projectIndex = findItemindex(projects, projectId);
