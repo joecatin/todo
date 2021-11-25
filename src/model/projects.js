@@ -93,6 +93,14 @@ const withTodosHandler = (projects) => ({
 
     return projects[projectIndex].todos[todoIndex][key];
   },
+  getTodosProp: (projectId, key) => {
+    const props = [];
+    const projectIndex = findItemindex(projects, projectId);
+    const project = projects[projectIndex];
+    project.todos.forEach((todo) => props.push(todo[key]));
+
+    return props;
+  },
   setTodo: (projectId, todoId, todo) => {
     const projectIndex = findItemindex(projects, projectId);
     const project = projects[projectIndex];

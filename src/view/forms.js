@@ -266,7 +266,7 @@ const processAddItem = async (e) => {
   let item = makeItem(e);
   let projectId = null;
 
-  if (!await validateForm(type, e)) return false;
+  if (!validateForm(type, e)) return false;
 
   const location = type.match(/(?<=-)\w+$/)[0];
 
