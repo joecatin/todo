@@ -333,7 +333,7 @@ const getItemSortValue = (item, key) => {
   return value;
 };
 
-const insertAfter = (newNode, existingNode) => {
+export const insertAfter = (newNode, existingNode) => {
   existingNode.parentNode.insertBefore(newNode, existingNode.nextSibling);
 };
 

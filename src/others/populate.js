@@ -40,7 +40,7 @@ const db = getFirestore();
 //     title: 'two',
 //     description: 'second dummy project',
 //     dueDate: Date.parse('2021-12-31'),
-//     priority: 'medium',
+//     priority: 'moderate',
 //     status: 'open',
 //     todos: [
 //       {
@@ -65,7 +65,7 @@ const db = getFirestore();
 //     title: 'three',
 //     description: 'third dummy project',
 //     dueDate: Date.parse('2021-12-15'),
-//     priority: 'medium',
+//     priority: 'moderate',
 //     status: 'open',
 //     todos: [
 //       {
@@ -118,7 +118,7 @@ const populate = async (col) => {
     title: 'two',
     description: 'second dummy project',
     dueDate: Timestamp.fromDate(new Date('2021-12-31')),
-    priority: 'medium',
+    priority: 'moderate',
     status: 'open',
   });
   todosRef = collection(db, col, docRef.id, 'todos');
@@ -141,7 +141,7 @@ const populate = async (col) => {
     title: 'three',
     description: 'third dummy project',
     dueDate: Timestamp.fromDate(new Date('2021-12-15')),
-    priority: 'medium',
+    priority: 'moderate',
     status: 'open',
   });
   todosRef = collection(db, col, docRef.id, 'todos');

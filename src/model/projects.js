@@ -52,10 +52,8 @@ const withProjectHandler = (projects) => ({
   },
   setProjectProps: (id, props) => {
     const projectIndex = findItemindex(projects, id);
-    props.forEach((key, value) => {
-      console.log(key);
-      console.log(value);
-      projects[projectIndex][key] = value;
+    Object.keys(props).forEach((key) => {
+      projects[projectIndex][key] = props[key];
     });
 
     return true;
