@@ -10,7 +10,7 @@
 /* eslint-disable default-case */
 
 import { format } from 'date-fns';
-import { showAddItem, showEditItem } from './forms';
+import { showAddItem, showEditItem, sortHideItemControls } from './forms';
 import { sort, sortedIndex } from '../model/utils';
 import {
   addItemToFirestore, deleteProjectFromFirestore, deleteTodoFromFirestore,
@@ -409,7 +409,13 @@ export const switchProjectsTodos = async (e) => {
   let items = null;
 
   const list = document.getElementById('home-items');
-  clearContainerOfElements(list, 'form');
+  const form = list.querySelector('form');
+  if (form !== null) {
+    const control = document.getElementById('home-controls-add');
+    const type = form.classList[1].match(/(?<=-)\w+$/)[0];
+    sortHideItemControls(control, type, false);
+    clearContainerOfElements(list, 'form');
+  }
 
   const { by, desc } = document.getElementById('home');
   switch (type) {
@@ -458,4 +464,18 @@ const deleteItem = async (e) => {
   item.remove();
 
   return id;
+};
+
+export const getProjectPropFromTodoId = (todoId, key) => {
+  const todo = document.getElementById(todoId);
+  const project = todo.parentElement.closest("[class$='item project']");
+
+  const prop = project[key];
+
+  if (prop === null) {
+    console.log(`${key} not found in project ${project.id}`);
+    return false;
+  }
+
+  return prop;
 };

@@ -7,6 +7,8 @@
 /* eslint-disable no-shadow */
 /* eslint-disable no-unused-vars */
 /* eslint-disable import/no-cycle */
+/* eslint-disable prefer-destructuring */
+/* eslint-disable prefer-const */
 
 import { Timestamp } from 'firebase/firestore';
 import { format } from 'date-fns';
@@ -19,7 +21,9 @@ import {
   clearContainerOfElements,
   makeFormInputText, makeFormInputDate, makeFormInputSelect,
 } from './shared';
-import { addItem, adjustHeight, getHomeType, insertAfter } from './utils';
+import {
+  addItem, adjustHeight, getHomeType, insertAfter,
+} from './utils';
 import './forms.css';
 
 const priorityLevels = ['high', 'moderate', 'low'];
@@ -95,7 +99,7 @@ const makeAddItemForm = (type) => {
   return form;
 };
 
-const sortHideItemControls = (control, type, show = true) => {
+export const sortHideItemControls = (control, type, show = true) => {
   control.textContent = (show) ? 'cancel' : 'add';
 
   switch (type) {
@@ -135,6 +139,19 @@ const hideAddItemFromHome = () => {
   return true;
 };
 
+// const hideAddTodoFromProject = (e) => {
+//   const project = document.getElementById(e.target.itemId).parentElement
+//     .closest("[class='item project]");
+//   // console.log(project);
+//   // const list = project.querySelector('.project-todos-list');
+//   // const control = project.querySelector('project-todos-header-button');
+//   // sortHideItemControls(control, 'project', false);
+
+//   // clearContainerOfElements(project, 'form');
+
+//   // return true;
+// };
+
 const showAddTodoFromProject = (form, e) => {
   const container = e.target.parentElement
     .closest('div[class$=header]').nextSibling;
@@ -149,14 +166,16 @@ const showAddTodoFromProject = (form, e) => {
 };
 
 const hideAddTodoFromProject = (e) => {
-  const container = e.target.closest('div[class$=content]')
+  // const container = e.target.closest('div[class$=content]')
+  //   .querySelector('.project-todos-list');
+  const container = e.target.closest("[class='item project']")
     .querySelector('.project-todos-list');
 
   const control = container.parentElement
     .querySelector('.project-todos-header-button');
   sortHideItemControls(control, 'project', false);
 
-  clearContainerOfElements(container, '.form-add');
+  clearContainerOfElements(container, 'form');
 
   return true;
 };
@@ -284,7 +303,7 @@ const makeEditProjectForm = (id) => {
   insertAfter(date, ref);
 
   form.type = 'project';
-  form.id = id;
+  form.itemId = id;
 
   return form;
 };
@@ -311,14 +330,19 @@ const makeEditTodoForm = (todoId) => {
   insertAfter(date, ref);
 
   form.type = 'todo';
-  form.id = todoId;
+  form.itemId = todoId;
 
   return form;
 };
 
 const makeEditItemForm = (id) => {
   const item = document.getElementById(id);
-  const type = item.classList[1];
+
+  let location = 'home'; let type = item.classList[1];
+  if (/-/.test(type)) {
+    location = type.match(/^\w+(?=-)/)[0];
+    type = type.match(/(?<=-)\w+$/)[0];
+  }
 
   let form = null;
   switch (type) {
@@ -327,9 +351,10 @@ const makeEditItemForm = (id) => {
     default: console.log(`makeEditItemForm: sorry, we are out of ${type}.`);
   }
 
-  form.name = 'edit-item';
-  form.classList.add('form-edit');
-  form.classList.add('form-edit-home');
+  Object.entries({ name: 'edit-item', location, itemId: id })
+    .forEach((x) => { form[x[0]] = x[1]; });
+  ['form-edit', `form-edit-${location}`]
+    .forEach((x) => form.classList.add(x));
 
   form.addEventListener('submit', processEditItem);
 
@@ -349,24 +374,50 @@ const showEdiItemFromHome = (form) => {
   return true;
 };
 
+const showEditTodoFromProject = (form) => {
+  const project = document
+    .getElementById(projects.getProjectPropFromTodoId(form.itemId, 'id'));
+  const container = project.querySelector('.project-todos-list');
+
+  const control = project.querySelector('#project-add-todo');
+  sortHideItemControls(control, 'project', true);
+
+  clearContainerOfElements(container, 'form');
+  container.prepend(form);
+  adjustHeight(form, 'div[class$=content]');
+
+  return true;
+};
+
 export const showEditItem = (e) => {
   const { type } = e.target;
 
   const { id } = e.target.parentElement.closest(`div[class*=${type}]`);
   const form = makeEditItemForm(id);
-  showEdiItemFromHome(form);
+
+  switch (form.location) {
+    case 'home': { showEdiItemFromHome(form); break; }
+    case 'project': { showEditTodoFromProject(form); break; }
+    default: console.log(`showEditItem: sorry, we are out of ${form.location}.`);
+  }
 
   return true;
 };
 
 const editItemOnHomeList = (id, props) => {
-  const list = document.getElementById('home-items-list');
-  const item = list.querySelector(`div[id=${id}]`);
+  const item = document.getElementById(id);
+  const type = item.classList[1];
 
-  Object.keys(props).forEach((key) => {
+  const keys = ['title', 'description', 'dueDate', 'priority'];
+  keys.forEach((key) => {
     const container = item.querySelector(`[class*=${key}]`);
     container.textContent = props[key];
   });
+
+  if (type === 'todo') {
+    const container = item.querySelector('[class*=project]');
+    container.textContent = props.project;
+  }
 
   return true;
 };
@@ -374,7 +425,7 @@ const editItemOnHomeList = (id, props) => {
 const getItemPropsFromForm = (type, e) => {
   const props = {};
   if (type === 'todo') props.project = e.target.project.value;
-  props.id = e.target.id;
+  props.id = e.target.itemId;
   props.title = e.target.title.value;
   props.description = e.target.description.value;
   props.dueDate = e.target.date.value;
@@ -435,25 +486,44 @@ const editProject = async (e, id) => {
   return true;
 };
 
+const editTodoOnProjectList = (id, props) => {
+  const todo = document.getElementById(id);
+
+  const keys = ['title', 'description', 'dueDate', 'priority'];
+  keys.forEach((key) => {
+    const container = todo.querySelector(`[class*=${key}]`);
+    container.textContent = props[key];
+  });
+
+  return true;
+};
+
 const editTodo = async (e, id) => {
   const props = getItemPropsFromForm('todo', e);
+  const location = e.target.classList[1].match(/(?<=-)\w+$/)[0];
 
   await editTodoData(e, id);
-  // editItemOnHomeList(id, props);
 
-  // hideAddItemFromHome(e);
+  switch (location) {
+    case 'home': { editItemOnHomeList(id, props); hideAddItemFromHome(e); break; }
+    case 'project': { editTodoOnProjectList(id, props); hideAddTodoFromProject(e); break; }
+    default: console.log(`editTodo: sorry, we are out of ${location}.`);
+  }
 
-  // return true;
+  return true;
 };
 
 const processEditItem = async (e) => {
   e.preventDefault();
 
-  const { type, id } = e.target;
+  const { type } = e.target;
+  const id = e.target.itemId;
 
   switch (type) {
     case 'project': { await editProject(e, id); break; }
     case 'todo': { editTodo(e, id); break; }
     default: console.log(`processAddItem: sorry, we are out of ${type}.`);
   }
+
+  return true;
 };
