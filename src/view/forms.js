@@ -10,8 +10,11 @@
 
 import { Timestamp } from 'firebase/firestore';
 import { format } from 'date-fns';
-import { validateForm } from '../model/forms';
-import { projects, setProjectProps } from '../model/firestore';
+import { validateForm, validateFormAddTodo } from '../model/forms';
+import {
+  addTodoWithIdToFirestore, deleteTodoFromFirestore, projects,
+  setProjectPropsInFirestore, setTodoPropsInFirestore,
+} from '../model/firestore';
 import {
   clearContainerOfElements,
   makeFormInputText, makeFormInputDate, makeFormInputSelect,
@@ -191,7 +194,8 @@ const processAddItem = async (e) => {
   e.preventDefault();
 
   const { type } = e.target;
-  let item = makeItem(e); let projectId = null;
+  let item = makeItem(e);
+  let projectId = null;
 
   if (!validateForm(type, e)) return false;
 
@@ -246,65 +250,6 @@ const makeEditItemSubmit = () => {
   return container;
 };
 
-const editProjectOnDOM = (id, props) => {
-  const list = document.getElementById('home-items-list');
-  const project = list.querySelector(`div[id=${id}]`);
-
-  Object.keys(props).forEach((key) => {
-    const container = project.querySelector(`[class*=${key}]`);
-    console.log(container);
-    console.log(props[key]);
-    container.textContent = props[key];
-  });
-
-  return true;
-};
-
-const getProjectPropsFromForm = (e) => {
-  const props = {};
-  props.title = e.target.title.value;
-  props.description = e.target.description.value;
-  props.dueDate = e.target.date.value;
-  props.priority = e.target.priority.value;
-
-  return props;
-};
-
-const editProjectData = async (e, id) => {
-  const props = getProjectPropsFromForm(e);
-
-  props.dueDate = new Date(props.dueDate);
-  await setProjectProps(id, props);
-
-  props.dueDate = Timestamp.fromDate(props.dueDate);
-  projects.setProjectProps(id, props);
-
-  return id;
-};
-
-const editProject = async (e, id) => {
-  const props = getProjectPropsFromForm(e);
-
-  await editProjectData(e, id);
-  editProjectOnDOM(id, props);
-
-  hideAddItemFromHome(e);
-
-  return true;
-};
-
-const processEditItem = async (e) => {
-  e.preventDefault();
-
-  const { type, id } = e.target;
-
-  switch (type) {
-    case 'project': { await editProject(e, id); break; }
-    // case 'todo': { editTodo(e, projectID); break; }
-    default: console.log(`processAddItem: sorry, we are out of ${type}.`);
-  }
-};
-
 const makeEditItemFormBody = (title, description, priority) => {
   const form = document.createElement('form');
 
@@ -344,6 +289,33 @@ const makeEditProjectForm = (id) => {
   return form;
 };
 
+const makeEditTodoForm = (todoId) => {
+  const projectId = projects.getProjectPropFromTodoId(todoId, 'id');
+
+  const title = projects.getTodoProp(projectId, todoId, 'title');
+  const description = projects.getTodoProp(projectId, todoId, 'description');
+  const priority = projects.getTodoProp(projectId, todoId, 'priority');
+  const form = makeEditItemFormBody(title, description, priority);
+
+  let projectTitles = projects.getProjectsProp('title');
+  projectTitles = makeFormInputSelect(
+    'project', 'project', 'project: ', projectTitles,
+    projects.getProjectPropFromTodoId(todoId, 'title'),
+  );
+  form.prepend(projectTitles);
+
+  let date = projects.getTodoProp(projectId, todoId, 'dueDate');
+
+  date = makeFormInputDate('date', 'date', format(date.seconds * 1000, 'yyyy-MM-dd'));
+  const ref = form.querySelector('input[id=description]');
+  insertAfter(date, ref);
+
+  form.type = 'todo';
+  form.id = todoId;
+
+  return form;
+};
+
 const makeEditItemForm = (id) => {
   const item = document.getElementById(id);
   const type = item.classList[1];
@@ -351,20 +323,20 @@ const makeEditItemForm = (id) => {
   let form = null;
   switch (type) {
     case 'project': { form = makeEditProjectForm(id); break; }
-    case 'todo': { form = makeEditTodoForm(item); break; }
+    case 'todo': { form = makeEditTodoForm(id); break; }
     default: console.log(`makeEditItemForm: sorry, we are out of ${type}.`);
   }
 
   form.name = 'edit-item';
   form.classList.add('form-edit');
-  form.classList.add(`form-edit-${type}`);
+  form.classList.add('form-edit-home');
 
   form.addEventListener('submit', processEditItem);
 
   return form;
 };
 
-const showEditProject = (form) => {
+const showEdiItemFromHome = (form) => {
   const container = document.getElementById('home-items');
 
   const control = document.getElementById('home-controls-add');
@@ -379,22 +351,109 @@ const showEditProject = (form) => {
 
 export const showEditItem = (e) => {
   const { type } = e.target;
-  const projectId = e.target.parentElement.closest('div[class*=project]').id;
+
+  const { id } = e.target.parentElement.closest(`div[class*=${type}]`);
+  const form = makeEditItemForm(id);
+  showEdiItemFromHome(form);
+
+  return true;
+};
+
+const editItemOnHomeList = (id, props) => {
+  const list = document.getElementById('home-items-list');
+  const item = list.querySelector(`div[id=${id}]`);
+
+  Object.keys(props).forEach((key) => {
+    const container = item.querySelector(`[class*=${key}]`);
+    container.textContent = props[key];
+  });
+
+  return true;
+};
+
+const getItemPropsFromForm = (type, e) => {
+  const props = {};
+  if (type === 'todo') props.project = e.target.project.value;
+  props.id = e.target.id;
+  props.title = e.target.title.value;
+  props.description = e.target.description.value;
+  props.dueDate = e.target.date.value;
+  props.priority = e.target.priority.value;
+
+  return props;
+};
+
+const editProjectData = async (e, id) => {
+  const props = getItemPropsFromForm('project', e);
+
+  props.dueDate = new Date(props.dueDate);
+  await setProjectPropsInFirestore(id, props);
+
+  props.dueDate = Timestamp.fromDate(props.dueDate);
+  projects.setProjectProps(id, props);
+
+  return id;
+};
+
+const editTodoData = async (e, todoId) => {
+  let { project, ...props } = getItemPropsFromForm('todo', e);
+  const newProjectId = projects.getProjectIdFromProp('title', project);
+  const originalProjectId = projects.getProjectPropFromTodoId(todoId, 'id');
+
+  if (newProjectId !== originalProjectId) {
+    if (!validateFormAddTodo(newProjectId, e)) return false;
+
+    const status = projects.getTodoProp(originalProjectId, todoId, 'status');
+    props = { status, ...props };
+    props.dueDate = new Date(props.dueDate);
+    await addTodoWithIdToFirestore(newProjectId, todoId, props);
+    props = { projectTitle: project, ...props };
+    props.dueDate = Timestamp.fromDate(props.dueDate);
+    projects.addTodo(newProjectId, props);
+
+    await deleteTodoFromFirestore(originalProjectId, todoId);
+    projects.deleteTodo(originalProjectId, todoId);
+  } else {
+    props.dueDate = new Date(props.dueDate);
+    await setTodoPropsInFirestore(newProjectId, todoId, props);
+
+    props.dueDate = Timestamp.fromDate(props.dueDate);
+    projects.setTodoProps(newProjectId, todoId, props);
+  }
+
+  return todoId;
+};
+
+const editProject = async (e, id) => {
+  const props = getItemPropsFromForm('project', e);
+
+  await editProjectData(e, id);
+  editItemOnHomeList(id, props);
+
+  hideAddItemFromHome(e);
+
+  return true;
+};
+
+const editTodo = async (e, id) => {
+  const props = getItemPropsFromForm('todo', e);
+
+  await editTodoData(e, id);
+  // editItemOnHomeList(id, props);
+
+  // hideAddItemFromHome(e);
+
+  // return true;
+};
+
+const processEditItem = async (e) => {
+  e.preventDefault();
+
+  const { type, id } = e.target;
 
   switch (type) {
-    case 'project': {
-      const form = makeEditItemForm(projectId);
-      showEditProject(form); break;
-    }
-    case 'todo': {
-      const container = e.currentTarget.parentElement.closest('div[class=project]');
-      const project = get(container.id);
-      project.then((project) => {
-        const form = addItem(type, project);
-        showAddTodo(container, form);
-      });
-      break;
-    }
-    default: console.log(`showAddItem: sorry, we are out of ${type}.`);
+    case 'project': { await editProject(e, id); break; }
+    case 'todo': { editTodo(e, id); break; }
+    default: console.log(`processAddItem: sorry, we are out of ${type}.`);
   }
 };

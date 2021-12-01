@@ -37,7 +37,14 @@ const withProjectHandler = (projects) => ({
 
     return project[key];
   },
-  getProjectIdByProp: (key, value) => projects.filter((project) => project[key] === value)[0].id,
+  getProjectIdFromProp: (key, value) => projects.filter((project) => project[key] === value)[0].id,
+  getProjectPropFromTodoId: (todoId, key) => {
+    const project = projects.filter(
+      (project) => project.todos.filter((todo) => todo.id === todoId).length > 0,
+    )[0];
+
+    return project[key];
+  },
   setProject: (id, value) => {
     const index = findItemindex(projects, id);
     projects[index] = value;
@@ -61,7 +68,6 @@ const withProjectHandler = (projects) => ({
   deleteProject: (id) => {
     const projectIndex = findItemindex(projects, id);
     projects.splice(projectIndex, 1);
-    // delete projects[projectIndex];
 
     return id;
   },
@@ -82,6 +88,11 @@ const withTodosHandler = (projects) => ({
     project.todos.forEach((todo) => props.push(todo[key]));
 
     return props;
+  },
+  getTodoFromId: (todoId) => {
+    const todo = projects.forEach((project) => project.todos.forEach((todo) => todo.id === todoId));
+
+    return todo;
   },
 });
 
@@ -116,8 +127,19 @@ const withTodoHandler = (projects) => ({
 
     return true;
   },
+  setTodoProps: (projectId, todoId, props) => {
+    const projectIndex = findItemindex(projects, projectId);
+    const project = projects[projectIndex];
+    const todoIndex = findItemindex(project.todos, todoId);
+    Object.keys(props).forEach((key) => {
+      projects[projectIndex].todos[todoIndex][key] = props[key];
+    });
+
+    return true;
+  },
   addTodo: (projectId, todo) => {
     const projectIndex = findItemindex(projects, projectId);
+    todo.projectId = projectId;
     projects[projectIndex].todos.push(todo);
 
     return todo.id;

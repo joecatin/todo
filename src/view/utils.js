@@ -16,6 +16,7 @@ import {
   addItemToFirestore, deleteProjectFromFirestore, deleteTodoFromFirestore,
   projects,
 } from '../model/firestore';
+import { clearContainerOfElements } from './shared';
 
 export const getHomeType = () => {
   const home = document.getElementById('home');
@@ -388,7 +389,12 @@ export const addItem = async (type, item, projectId = null) => {
   item.type = itemType;
   switch (itemType) {
     case 'project': { projects.addProject(item); break; }
-    case 'todo': { projects.addTodo(projectId, item); break; }
+    case 'todo': {
+      projects.addTodo(
+        projectId, { projectTitle: projects.getProjectProp(projectId, 'title'), ...item },
+      );
+      break;
+    }
     default:
       console.log(`AddItem: sorry, we are out of ${itemType}.`);
   }
@@ -398,8 +404,12 @@ export const addItem = async (type, item, projectId = null) => {
 
 export const switchProjectsTodos = async (e) => {
   const switchDiv = document.getElementById('home-controls-switch');
+
   let { type } = e.target;
   let items = null;
+
+  const list = document.getElementById('home-items');
+  clearContainerOfElements(list, 'form');
 
   const { by, desc } = document.getElementById('home');
   switch (type) {

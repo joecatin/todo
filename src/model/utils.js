@@ -11,7 +11,7 @@
 /* eslint-disable no-bitwise */
 /* eslint-disable no-await-in-loop */
 
-import { fetchProjects } from './firestore';
+import { fetchProjects, projects } from './firestore';
 
 export const sort = (arr, by, desc = true) => {
   switch (desc) {
@@ -34,21 +34,6 @@ export const asyncForEach = async (array, callback) => {
     await callback(array[index], index, array);
   }
 };
-
-// export const sortedIndex = (array, value) => {
-//   let low = 0;
-//   let high = array.length;
-
-//   while (low < high) {
-//     const mid = low + high >>> 1;
-//     console.log(array[mid]);
-//     console.log(value);
-//     console.log(array[mid] < value);
-//     if (array[mid] < value) low = mid + 1;
-//     else high = mid;
-//   }
-//   return low;
-// };
 
 export const sortedIndex = (array, value, desc = false) => {
   let low = 0;
