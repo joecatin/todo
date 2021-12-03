@@ -13,6 +13,8 @@
 
 import { Timestamp } from 'firebase/firestore';
 import { addYears, format } from 'date-fns';
+import { showAddItem } from './forms';
+import { clearContainerOfElements } from '../utils';
 
 export const priorityLevels = ['high', 'moderate', 'low'];
 
@@ -97,4 +99,53 @@ export const makeItemFormSubmit = (type, id, text) => {
   container.appendChild(input);
 
   return container;
+};
+
+export const makeItemFromAddEditForm = (e) => ({
+  title: e.target.title.value,
+  description: e.target.description.value,
+  dueDate: Timestamp.fromDate(new Date(e.target.date.value)),
+  priority: e.target.priority.value,
+  status: 'open',
+});
+
+const hideAddEditItemFormFromHome = () => {
+  const items = document.getElementById('home-items');
+  const control = document.getElementById('home-controls-add');
+  switchItemControl(control, 'home', false);
+
+  clearContainerOfElements(items, 'form');
+
+  return true;
+};
+
+const hideAddEditTodoFormFromProject = (e) => {
+  const container = e.target.closest("[class='item project']")
+    .querySelector('.project-todos-list');
+
+  const control = container.parentElement
+    .querySelector('.project-todos-header-button');
+  switchItemControl(control, 'project', false);
+
+  clearContainerOfElements(container, 'form');
+
+  return true;
+};
+
+export const switchItemControl = (control, type, show = true) => {
+  control.textContent = (show) ? 'cancel' : 'add';
+
+  switch (type) {
+    case 'home': {
+      control.removeEventListener('click', (show) ? showAddItem : hideAddEditItemFormFromHome);
+      control.addEventListener('click', (show) ? hideAddEditItemFormFromHome : showAddItem); break;
+    }
+    case 'project': {
+      control.removeEventListener('click', (show) ? showAddItem : hideAddEditTodoFormFromProject);
+      control.addEventListener('click', (show) ? hideAddEditTodoFormFromProject : showAddItem); break;
+    }
+    default: console.log(`switchItemControl: sorry, we are out of ${type}.`);
+  }
+
+  return true;
 };

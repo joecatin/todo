@@ -19,7 +19,7 @@ import {
 } from '../../model/firestore';
 import {
   makeFormInputText, makeFormInputDate, makeFormInputSelect,
-  makeItemFormSubmit,
+  makeItemFormSubmit, makeItemFromAddEditForm, switchItemControl,
 } from './utils';
 import {
   addItem, adjustHeight, clearContainerOfElements, getHomeType, insertAfter,
@@ -87,42 +87,14 @@ export const makeAddItemForm = (type) => {
   return form;
 };
 
-export const sortHideItemControls = (control, type, show = true) => {
-  control.textContent = (show) ? 'cancel' : 'add';
-
-  switch (type) {
-    case 'home': {
-      control.removeEventListener('click', (show) ? showAddItem : hideAddItemFromHome);
-      control.addEventListener('click', (show) ? hideAddItemFromHome : showAddItem); break;
-    }
-    case 'project': {
-      control.removeEventListener('click', (show) ? showAddItem : hideAddTodoFromProject);
-      control.addEventListener('click', (show) ? hideAddTodoFromProject : showAddItem); break;
-    }
-    default: console.log(`sortHideItemControls: sorry, we are out of ${type}.`);
-  }
-
-  return true;
-};
-
 const showAddItemFromHome = (form) => {
   const items = document.getElementById('home-items');
 
   const control = document.getElementById('home-controls-add');
-  sortHideItemControls(control, 'home', true);
+  switchItemControl(control, 'home', true);
 
   items.prepend(form);
   adjustHeight(form, 'div[class$=content]');
-
-  return true;
-};
-
-const hideAddItemFromHome = () => {
-  const items = document.getElementById('home-items');
-  const control = document.getElementById('home-controls-add');
-  sortHideItemControls(control, 'home', false);
-
-  clearContainerOfElements(items, 'form');
 
   return true;
 };
@@ -132,34 +104,13 @@ const showAddTodoFromProject = (form, e) => {
     .closest('div[class$=header]').nextSibling;
 
   const control = e.target;
-  sortHideItemControls(control, 'project', true);
+  switchItemControl(control, 'project', true);
 
   container.prepend(form);
   adjustHeight(form, 'div[class$=content]');
 
   return true;
 };
-
-const hideAddTodoFromProject = (e) => {
-  const container = e.target.closest("[class='item project']")
-    .querySelector('.project-todos-list');
-
-  const control = container.parentElement
-    .querySelector('.project-todos-header-button');
-  sortHideItemControls(control, 'project', false);
-
-  clearContainerOfElements(container, 'form');
-
-  return true;
-};
-
-const makeItem = (e) => ({
-  title: e.target.title.value,
-  description: e.target.description.value,
-  dueDate: Timestamp.fromDate(new Date(e.target.date.value)),
-  priority: e.target.priority.value,
-  status: 'open',
-});
 
 const addProjectIdToTodoItem = (e, location, item) => {
   let projectId = null;
@@ -186,7 +137,7 @@ const processAddItem = async (e) => {
   e.preventDefault();
 
   const { type } = e.target;
-  let item = makeItem(e);
+  let item = makeItemFromAddEditForm(e);
   let projectId = null;
 
   if (!validateForm(type, e)) return false;
@@ -325,7 +276,7 @@ const showEdiItemFromHome = (form) => {
   const container = document.getElementById('home-items');
 
   const control = document.getElementById('home-controls-add');
-  sortHideItemControls(control, 'home', true);
+  switchItemControl(control, 'home', true);
 
   clearContainerOfElements(container, 'form');
   container.prepend(form);
@@ -340,7 +291,7 @@ const showEditTodoFromProject = (form) => {
   const container = project.querySelector('.project-todos-list');
 
   const control = project.querySelector('#project-add-todo');
-  sortHideItemControls(control, 'project', true);
+  switchItemControl(control, 'project', true);
 
   clearContainerOfElements(container, 'form');
   container.prepend(form);
