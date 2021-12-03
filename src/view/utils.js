@@ -10,13 +10,12 @@
 /* eslint-disable default-case */
 
 import { format } from 'date-fns';
-import { showAddItem, showEditItem, sortHideItemControls } from './forms';
+import { showAddItem, showEditItem, sortHideItemControls } from './forms/forms';
 import { sort, sortedIndex } from '../model/utils';
 import {
   addItemToFirestore, deleteProjectFromFirestore, deleteTodoFromFirestore,
   projects,
 } from '../model/firestore';
-import { clearContainerOfElements } from './shared';
 
 export const getHomeType = () => {
   const home = document.getElementById('home');
@@ -432,6 +431,12 @@ export const switchProjectsTodos = async (e) => {
   }
   switchDiv.textContent = `${type}s`;
   switchDiv.type = type;
+
+  return true;
+};
+
+export const clearContainerOfElements = (container, selector) => {
+  container.querySelectorAll(selector).forEach((element) => element.remove());
 
   return true;
 };

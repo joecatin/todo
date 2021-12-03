@@ -7,267 +7,25 @@
 /* eslint-disable no-shadow */
 /* eslint-disable no-unused-vars */
 /* eslint-disable import/no-cycle */
+/* eslint-disable import/prefer-default-export */
 /* eslint-disable prefer-destructuring */
 /* eslint-disable prefer-const */
 
 import { Timestamp } from 'firebase/firestore';
 import { format } from 'date-fns';
-import { validateForm, validateFormAddTodo } from '../model/forms';
+import { hideAddItemFromHome, hideAddTodoFromProject } from './addItem';
 import {
-  addTodoWithIdToFirestore, deleteTodoFromFirestore, projects,
-  setProjectPropsInFirestore, setTodoPropsInFirestore,
-} from '../model/firestore';
-import {
-  clearContainerOfElements,
-  makeFormInputText, makeFormInputDate, makeFormInputSelect,
-} from './shared';
-import {
-  addItem, adjustHeight, getHomeType, insertAfter,
+  getItemPropsFromForm,
+  makeFormInputDate, makeFormInputText, makeFormInputSelect, priorityLevels,
 } from './utils';
-import './forms.css';
-
-const priorityLevels = ['high', 'moderate', 'low'];
-
-const makeAddItemFromHomeForm = (type) => {
-  const form = makeAddItemForm('project');
-
-  if (type === 'todo') {
-    let projectTitles = projects.getProjectsProp('title');
-    projectTitles = makeFormInputSelect(
-      'project', 'project', 'project: ', projectTitles,
-    );
-    form.prepend(projectTitles);
-  }
-
-  form.type = `add-${type}-home`;
-
-  return form;
-};
-
-const makeAddTodoFromProjectForm = () => {
-  const form = makeAddItemForm('todo');
-  form.type = 'add-todo-project';
-
-  return form;
-};
-
-const makeAddItemFormSubmit = () => {
-  const container = document.createElement('div');
-  container.id = 'submit-add-form';
-  const input = document.createElement('input');
-  input.type = 'submit';
-  input.id = 'add';
-  input.value = 'add';
-  container.appendChild(input);
-
-  return container;
-};
-
-const makeAddItemFormBody = () => {
-  const form = document.createElement('form');
-
-  const title = makeFormInputText('add', 'title', 'title', 'title');
-  form.appendChild(title);
-
-  const description = makeFormInputText('add', 'description', 'description', 'description');
-  form.appendChild(description);
-
-  const date = makeFormInputDate('date', 'date');
-  form.appendChild(date);
-
-  const priority = makeFormInputSelect(
-    'priority', 'priority', 'priority: ',
-    priorityLevels, priorityLevels[1],
-  );
-  form.appendChild(priority);
-
-  const submit = makeAddItemFormSubmit();
-  form.appendChild(submit);
-
-  return form;
-};
-
-const makeAddItemForm = (type) => {
-  const form = makeAddItemFormBody();
-
-  form.name = 'add-item';
-  form.classList.add('form-add');
-  form.classList.add(`form-add-${type}`);
-
-  form.addEventListener('submit', processAddItem);
-
-  return form;
-};
-
-export const sortHideItemControls = (control, type, show = true) => {
-  control.textContent = (show) ? 'cancel' : 'add';
-
-  switch (type) {
-    case 'home': {
-      control.removeEventListener('click', (show) ? showAddItem : hideAddItemFromHome);
-      control.addEventListener('click', (show) ? hideAddItemFromHome : showAddItem); break;
-    }
-    case 'project': {
-      control.removeEventListener('click', (show) ? showAddItem : hideAddTodoFromProject);
-      control.addEventListener('click', (show) ? hideAddTodoFromProject : showAddItem); break;
-    }
-    default: console.log(`sortHideItemControls: sorry, we are out of ${type}.`);
-  }
-
-  return true;
-};
-
-const showAddItemFromHome = (form) => {
-  const items = document.getElementById('home-items');
-
-  const control = document.getElementById('home-controls-add');
-  sortHideItemControls(control, 'home', true);
-
-  items.prepend(form);
-  adjustHeight(form, 'div[class$=content]');
-
-  return true;
-};
-
-const hideAddItemFromHome = () => {
-  const items = document.getElementById('home-items');
-  const control = document.getElementById('home-controls-add');
-  sortHideItemControls(control, 'home', false);
-
-  clearContainerOfElements(items, 'form');
-
-  return true;
-};
-
-// const hideAddTodoFromProject = (e) => {
-//   const project = document.getElementById(e.target.itemId).parentElement
-//     .closest("[class='item project]");
-//   // console.log(project);
-//   // const list = project.querySelector('.project-todos-list');
-//   // const control = project.querySelector('project-todos-header-button');
-//   // sortHideItemControls(control, 'project', false);
-
-//   // clearContainerOfElements(project, 'form');
-
-//   // return true;
-// };
-
-const showAddTodoFromProject = (form, e) => {
-  const container = e.target.parentElement
-    .closest('div[class$=header]').nextSibling;
-
-  const control = e.target;
-  sortHideItemControls(control, 'project', true);
-
-  container.prepend(form);
-  adjustHeight(form, 'div[class$=content]');
-
-  return true;
-};
-
-const hideAddTodoFromProject = (e) => {
-  // const container = e.target.closest('div[class$=content]')
-  //   .querySelector('.project-todos-list');
-  const container = e.target.closest("[class='item project']")
-    .querySelector('.project-todos-list');
-
-  const control = container.parentElement
-    .querySelector('.project-todos-header-button');
-  sortHideItemControls(control, 'project', false);
-
-  clearContainerOfElements(container, 'form');
-
-  return true;
-};
-
-const makeItem = (e) => ({
-  title: e.target.title.value,
-  description: e.target.description.value,
-  dueDate: Timestamp.fromDate(new Date(e.target.date.value)),
-  priority: e.target.priority.value,
-  status: 'open',
-});
-
-const addProjectIdToTodoItem = (e, location, item) => {
-  let projectId = null;
-  switch (location) {
-    case 'home': {
-      const projectTitle = e.target.project.value;
-      item = { projectTitle, ...item };
-      projectId = projects.getProjectIdByProp('title', projectTitle);
-      break;
-    }
-    case 'project': {
-      projectId = e.target.parentElement.closest('div[class~=project]').id;
-      break;
-    }
-    default:
-      console.log(`addProjectIdToTodoItem: sorry, we are out of ${location}.`);
-  }
-  item = { projectId, ...item };
-
-  return item;
-};
-
-const processAddItem = async (e) => {
-  e.preventDefault();
-
-  const { type } = e.target;
-  let item = makeItem(e);
-  let projectId = null;
-
-  if (!validateForm(type, e)) return false;
-
-  const location = type.match(/(?<=-)\w+$/)[0];
-
-  if (/todo/.test(type)) {
-    item = addProjectIdToTodoItem(e, location, item);
-    projectId = item.projectId;
-  }
-
-  const itemId = await addItem(type, item, projectId);
-
-  switch (location) {
-    case 'home': { hideAddItemFromHome(); break; }
-    case 'project': { hideAddTodoFromProject(e); break; }
-    default: console.log(`processAddItem: sorry, we are out of ${location}.`);
-  }
-
-  return itemId;
-};
-
-export const showAddItem = (e) => {
-  let { type } = e.target;
-  const location = e.target.id.match(/^\w+/)[0];
-
-  switch (location) {
-    case 'home': {
-      type = getHomeType();
-      const form = makeAddItemFromHomeForm(type);
-      showAddItemFromHome(form); break;
-    }
-    case 'project': {
-      const form = makeAddTodoFromProjectForm();
-      showAddTodoFromProject(form, e); break;
-    }
-    default:
-      console.log(`showAddItem: sorry, we are out of ${location}.`);
-  }
-
-  return true;
-};
-
-const makeEditItemSubmit = () => {
-  const container = document.createElement('div');
-  container.id = 'submit-edit-form';
-  const input = document.createElement('input');
-  input.type = 'submit';
-  input.id = 'save';
-  input.value = 'save';
-  container.appendChild(input);
-
-  return container;
-};
+import {
+  adjustHeight, clearContainerOfElements, insertAfter, sortHideItemControls,
+} from '../utils';
+import { validateFormAddTodo } from '../../model/forms';
+import {
+  addTodoWithIdToFirestore, deleteTodoFromFirestore,
+  projects, setProjectPropsInFirestore, setTodoPropsInFirestore,
+} from '../../model/firestore';
 
 const makeEditItemFormBody = (title, description, priority) => {
   const form = document.createElement('form');
@@ -288,6 +46,18 @@ const makeEditItemFormBody = (title, description, priority) => {
   form.appendChild(submit);
 
   return form;
+};
+
+const makeEditItemSubmit = () => {
+  const container = document.createElement('div');
+  container.id = 'submit-edit-form';
+  const input = document.createElement('input');
+  input.type = 'submit';
+  input.id = 'save';
+  input.value = 'save';
+  container.appendChild(input);
+
+  return container;
 };
 
 const makeEditProjectForm = (id) => {
@@ -420,18 +190,6 @@ const editItemOnHomeList = (id, props) => {
   }
 
   return true;
-};
-
-const getItemPropsFromForm = (type, e) => {
-  const props = {};
-  if (type === 'todo') props.project = e.target.project.value;
-  props.id = e.target.itemId;
-  props.title = e.target.title.value;
-  props.description = e.target.description.value;
-  props.dueDate = e.target.date.value;
-  props.priority = e.target.priority.value;
-
-  return props;
 };
 
 const editProjectData = async (e, id) => {

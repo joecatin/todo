@@ -7,9 +7,34 @@
 /* eslint-disable no-shadow */
 /* eslint-disable no-unused-vars */
 /* eslint-disable import/no-cycle */
+/* eslint-disable prefer-destructuring */
+/* eslint-disable prefer-const */
 /* eslint-disable import/prefer-default-export */
 
+import { Timestamp } from 'firebase/firestore';
 import { addYears, format } from 'date-fns';
+
+export const priorityLevels = ['high', 'moderate', 'low'];
+
+export const getItemPropsFromForm = (type, e) => {
+  const props = {};
+  if (type === 'todo') props.project = e.target.project.value;
+  props.id = e.target.itemId;
+  props.title = e.target.title.value;
+  props.description = e.target.description.value;
+  props.dueDate = e.target.date.value;
+  props.priority = e.target.priority.value;
+
+  return props;
+};
+
+export const makeItem = (e) => ({
+  title: e.target.title.value,
+  description: e.target.description.value,
+  dueDate: Timestamp.fromDate(new Date(e.target.date.value)),
+  priority: e.target.priority.value,
+  status: 'open',
+});
 
 export const makeFormInputText = (type, id, name, text) => {
   const input = document.createElement('input');
@@ -22,21 +47,6 @@ export const makeFormInputText = (type, id, name, text) => {
     case 'edit': { input.value = text; break; }
     default: console.log(`makeFormInputText: sorry, we are out of ${type}.`);
   }
-
-  return input;
-};
-
-export const makeFormInputDate = (
-  id, name, value = format(new Date(), 'yyyy-MM-dd'),
-  min = new Date(), max = addYears(new Date(), 1),
-) => {
-  const input = document.createElement('input');
-  input.type = 'date';
-  input.id = id;
-  input.name = name;
-  input.value = value;
-  input.min = min;
-  input.max = max;
 
   return input;
 };
@@ -62,8 +72,29 @@ export const makeFormInputSelect = (id, name, text, choices, selected = null) =>
   return container;
 };
 
-export const clearContainerOfElements = (container, selector) => {
-  container.querySelectorAll(selector).forEach((element) => element.remove());
+export const makeFormInputDate = (
+  id, name, value = format(new Date(), 'yyyy-MM-dd'),
+  min = new Date(), max = addYears(new Date(), 1),
+) => {
+  const input = document.createElement('input');
+  input.type = 'date';
+  input.id = id;
+  input.name = name;
+  input.value = value;
+  input.min = min;
+  input.max = max;
 
-  return true;
+  return input;
+};
+
+export const makeItemFormSubmit = (type, id, text) => {
+  const container = document.createElement('div');
+  container.id = `submit-${type}-form`;
+  const input = document.createElement('input');
+  input.type = 'submit';
+  input.id = id;
+  input.value = text;
+  container.appendChild(input);
+
+  return container;
 };
