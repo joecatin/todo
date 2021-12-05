@@ -10,7 +10,7 @@
 /* eslint-disable import/prefer-default-export */
 
 import showHome from './view/home';
-import { showAddItem } from './view/forms/forms';
+import { showAddItem } from './view/forms/addItem';
 import { showItems, switchProjectsTodos } from './view/utils';
 import { projects } from './model/firestore';
 import './index.css';

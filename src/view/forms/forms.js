@@ -7,6 +7,7 @@
 /* eslint-disable no-shadow */
 /* eslint-disable no-unused-vars */
 /* eslint-disable import/no-cycle */
+/* eslint-disable import/prefer-default-export */
 /* eslint-disable prefer-destructuring */
 /* eslint-disable prefer-const */
 
@@ -18,167 +19,16 @@ import {
   setProjectPropsInFirestore, setTodoPropsInFirestore,
 } from '../../model/firestore';
 import {
+  addProjectIdToTodoItem,
+  hideAddEditItemFormFromHome, hideAddEditTodoFormFromProject,
   makeFormInputText, makeFormInputDate, makeFormInputSelect,
   makeItemFormSubmit, makeItemFromAddEditForm, switchItemControl,
+  priorityLevels,
 } from './utils';
 import {
   addItem, adjustHeight, clearContainerOfElements, getHomeType, insertAfter,
 } from '../utils';
 import './forms.css';
-
-const priorityLevels = ['high', 'moderate', 'low'];
-
-const makeAddItemFromHomeForm = (type) => {
-  const form = makeAddItemForm('project');
-
-  if (type === 'todo') {
-    let projectTitles = projects.getProjectsProp('title');
-    projectTitles = makeFormInputSelect(
-      'project', 'project', 'project: ', projectTitles,
-    );
-    form.prepend(projectTitles);
-  }
-
-  form.type = `add-${type}-home`;
-
-  return form;
-};
-
-const makeAddTodoFromProjectForm = () => {
-  const form = makeAddItemForm('todo');
-  form.type = 'add-todo-project';
-
-  return form;
-};
-
-const makeAddItemFormBody = () => {
-  const form = document.createElement('form');
-
-  const title = makeFormInputText('add', 'title', 'title', 'title');
-  form.appendChild(title);
-
-  const description = makeFormInputText('add', 'description', 'description', 'description');
-  form.appendChild(description);
-
-  const date = makeFormInputDate('date', 'date');
-  form.appendChild(date);
-
-  const priority = makeFormInputSelect(
-    'priority', 'priority', 'priority: ',
-    priorityLevels, priorityLevels[1],
-  );
-  form.appendChild(priority);
-
-  const submit = makeItemFormSubmit('add', 'add', 'add');
-  form.appendChild(submit);
-
-  return form;
-};
-
-export const makeAddItemForm = (type) => {
-  const form = makeAddItemFormBody();
-
-  form.name = 'add-item';
-  form.classList.add('form-add');
-  form.classList.add(`form-add-${type}`);
-
-  form.addEventListener('submit', processAddItem);
-
-  return form;
-};
-
-const showAddItemFromHome = (form) => {
-  const items = document.getElementById('home-items');
-
-  const control = document.getElementById('home-controls-add');
-  switchItemControl(control, 'home', true);
-
-  items.prepend(form);
-  adjustHeight(form, 'div[class$=content]');
-
-  return true;
-};
-
-const showAddTodoFromProject = (form, e) => {
-  const container = e.target.parentElement
-    .closest('div[class$=header]').nextSibling;
-
-  const control = e.target;
-  switchItemControl(control, 'project', true);
-
-  container.prepend(form);
-  adjustHeight(form, 'div[class$=content]');
-
-  return true;
-};
-
-const addProjectIdToTodoItem = (e, location, item) => {
-  let projectId = null;
-  switch (location) {
-    case 'home': {
-      const projectTitle = e.target.project.value;
-      item = { projectTitle, ...item };
-      projectId = projects.getProjectIdByProp('title', projectTitle);
-      break;
-    }
-    case 'project': {
-      projectId = e.target.parentElement.closest('div[class~=project]').id;
-      break;
-    }
-    default:
-      console.log(`addProjectIdToTodoItem: sorry, we are out of ${location}.`);
-  }
-  item = { projectId, ...item };
-
-  return item;
-};
-
-const processAddItem = async (e) => {
-  e.preventDefault();
-
-  const { type } = e.target;
-  let item = makeItemFromAddEditForm(e);
-  let projectId = null;
-
-  if (!validateForm(type, e)) return false;
-
-  const location = type.match(/(?<=-)\w+$/)[0];
-
-  if (/todo/.test(type)) {
-    item = addProjectIdToTodoItem(e, location, item);
-    projectId = item.projectId;
-  }
-
-  const itemId = await addItem(type, item, projectId);
-
-  switch (location) {
-    case 'home': { hideAddItemFromHome(); break; }
-    case 'project': { hideAddTodoFromProject(e); break; }
-    default: console.log(`processAddItem: sorry, we are out of ${location}.`);
-  }
-
-  return itemId;
-};
-
-export const showAddItem = (e) => {
-  let { type } = e.target;
-  const location = e.target.id.match(/^\w+/)[0];
-
-  switch (location) {
-    case 'home': {
-      type = getHomeType();
-      const form = makeAddItemFromHomeForm(type);
-      showAddItemFromHome(form); break;
-    }
-    case 'project': {
-      const form = makeAddTodoFromProjectForm();
-      showAddTodoFromProject(form, e); break;
-    }
-    default: console.log(`showAddItem: sorry, we are out of ${location}.`);
-  }
-
-  return true;
-};
 
 const makeEditItemFormBody = (title, description, priority) => {
   const form = document.createElement('form');
@@ -392,7 +242,7 @@ const editProject = async (e, id) => {
   await editProjectData(e, id);
   editItemOnHomeList(id, props);
 
-  hideAddItemFromHome(e);
+  hideAddEditItemFormFromHome(e);
 
   return true;
 };
@@ -416,8 +266,8 @@ const editTodo = async (e, id) => {
   await editTodoData(e, id);
 
   switch (location) {
-    case 'home': { editItemOnHomeList(id, props); hideAddItemFromHome(e); break; }
-    case 'project': { editTodoOnProjectList(id, props); hideAddTodoFromProject(e); break; }
+    case 'home': { editItemOnHomeList(id, props); hideAddEditItemFormFromHome(); break; }
+    case 'project': { editTodoOnProjectList(id, props); hideAddEditTodoFormFromProject(e); break; }
     default: console.log(`editTodo: sorry, we are out of ${location}.`);
   }
 

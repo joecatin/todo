@@ -10,7 +10,10 @@
 /* eslint-disable default-case */
 
 import { format } from 'date-fns';
-import { showAddItem, showEditItem, sortHideItemControls } from './forms/forms';
+import { showEditItem } from './forms/forms';
+import { switchItemControl } from './forms/utils';
+import { showAddItem } from './forms/addItem';
+
 import { sort, sortedIndex } from '../model/utils';
 import {
   addItemToFirestore, deleteProjectFromFirestore, deleteTodoFromFirestore,
@@ -412,7 +415,7 @@ export const switchProjectsTodos = async (e) => {
   if (form !== null) {
     const control = document.getElementById('home-controls-add');
     const type = form.classList[1].match(/(?<=-)\w+$/)[0];
-    sortHideItemControls(control, type, false);
+    switchItemControl(control, type, false);
     clearContainerOfElements(list, 'form');
   }
 

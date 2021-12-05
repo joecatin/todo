@@ -13,6 +13,7 @@
 
 import { Timestamp } from 'firebase/firestore';
 import { addYears, format } from 'date-fns';
+import { projects } from '../../model/firestore';
 import { showAddItem } from './forms';
 import { clearContainerOfElements } from '../utils';
 
@@ -109,7 +110,28 @@ export const makeItemFromAddEditForm = (e) => ({
   status: 'open',
 });
 
-const hideAddEditItemFormFromHome = () => {
+export const addProjectIdToTodoItem = (e, location, item) => {
+  let projectId = null;
+  switch (location) {
+    case 'home': {
+      const projectTitle = e.target.project.value;
+      item = { projectTitle, ...item };
+      projectId = projects.getProjectIdByProp('title', projectTitle);
+      break;
+    }
+    case 'project': {
+      projectId = e.target.parentElement.closest('div[class~=project]').id;
+      break;
+    }
+    default:
+      console.log(`addProjectIdToTodoItem: sorry, we are out of ${location}.`);
+  }
+  item = { projectId, ...item };
+
+  return item;
+};
+
+export const hideAddEditItemFormFromHome = () => {
   const items = document.getElementById('home-items');
   const control = document.getElementById('home-controls-add');
   switchItemControl(control, 'home', false);
@@ -119,7 +141,7 @@ const hideAddEditItemFormFromHome = () => {
   return true;
 };
 
-const hideAddEditTodoFormFromProject = (e) => {
+export const hideAddEditTodoFormFromProject = (e) => {
   const container = e.target.closest("[class='item project']")
     .querySelector('.project-todos-list');
 
