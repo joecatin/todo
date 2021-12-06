@@ -53,6 +53,8 @@ const makeHome = (type) => {
   home.appendChild(content);
 
   document.body.appendChild(home);
+
+  return true;
 };
 
 const showHome = async (type, ...sortArgs) => {
@@ -61,6 +63,8 @@ const showHome = async (type, ...sortArgs) => {
   const home = document.getElementById('home');
   home.type = type;
   [home.by, home.desc] = sortArgs;
+
+  return true;
 };
 
 export default showHome;

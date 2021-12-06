@@ -17,55 +17,14 @@ import {
 } from 'firebase/firestore';
 import firebaseConfig from '../config/firebase';
 import { Projects } from './projects';
+import { asyncForEach } from './utils'
 
 
 initializeApp(firebaseConfig);
 const db = getFirestore();
 const col = 'todos';
 
-const asyncForEach = async (array, callback) => {
-  for (let index = 0; index < array.length; index++) {
-    await callback(array[index], index, array);
-  }
-};
-
-export const getItems = async (type) => {
-  switch (type) {
-    case 'project': { const projects = await getProjects(); return projects; }
-    case 'todo': { const todos = await getTodos(); return todos; }
-    default: console.log('getItems: something went wrong.');
-  }
-};
-
-export const getProjectProp = async (id, key) => {
-  const docRef = doc(db, col, id);
-  const docSnap = await getDoc(docRef);
-
-  if (docSnap.exists()) { return docSnap.data()[key]; }
-
-  console.log('getProjectProp: no such document!');
-  return false;
-};
-
-export const getProjectsProp = async (key) => {
-  const projects = await fetchProjects();
-
-  const props = [];
-  projects.forEach((project) => props.push(project[key]));
-
-  return props;
-};
-
-export const getTodosProp = async (projectId, key) => {
-  const todos = await fetchProjectTodos(projectId);
-
-  const props = [];
-  todos.forEach((todo) => props.push(todo[key]));
-
-  return props;
-};
-
-export const getProjects = async () => {
+const getProjects = async () => {
   const projects = await fetchProjects();
 
   await asyncForEach(projects, async (project) => {
@@ -96,6 +55,7 @@ const fetchProjectTodos = async (projectId, projectTitle) => {
       todos.push({ type: 'todo', projectId, projectTitle, id: doc.id, ...doc.data() });
     });
   });
+
   return todos;
 };
 
@@ -107,11 +67,13 @@ export const fetchProjects = async () => {
       projects.push({ type: 'project', id: doc.id, ...doc.data(), todos: [] });
     });
   });
+
   return projects;
 };
 
 export const deleteTodoFromFirestore = async (projectId, todoId) => {
   await deleteDoc(doc(db, col, projectId, 'todos', todoId));
+
   return todoId;
 };
 

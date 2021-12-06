@@ -13,21 +13,22 @@
 
 import { Timestamp } from 'firebase/firestore';
 import { format } from 'date-fns';
-import { hideAddItemFromHome, hideAddTodoFromProject } from './addItem';
+import {
+  addTodoWithIdToFirestore, deleteTodoFromFirestore, projects,
+  setProjectPropsInFirestore, setTodoPropsInFirestore,
+} from '../../model/firestore';
 import {
   getItemPropsFromForm,
-  makeFormInputDate, makeFormInputText, makeFormInputSelect, priorityLevels,
+  hideAddEditItemFormFromHome, hideAddEditTodoFormFromProject,
+  makeFormInputDate, makeFormInputSelect, makeItemFormSubmit, makeFormInputText,
+  priorityLevels, switchItemControl,
 } from './utils';
 import {
-  adjustHeight, clearContainerOfElements, insertAfter, sortHideItemControls,
+  adjustHeight, clearContainerOfElements, editItemOnHomeList, insertAfter 
 } from '../utils';
 import { validateFormAddTodo } from '../../model/forms';
-import {
-  addTodoWithIdToFirestore, deleteTodoFromFirestore,
-  projects, setProjectPropsInFirestore, setTodoPropsInFirestore,
-} from '../../model/firestore';
 
-const makeEditItemFormBody = (title, description, priority) => {
+export const makeEditItemFormBody = (title, description, priority) => {
   const form = document.createElement('form');
 
   title = makeFormInputText('edit', 'title', 'title', title);
@@ -42,32 +43,19 @@ const makeEditItemFormBody = (title, description, priority) => {
   );
   form.appendChild(priority);
 
-  const submit = makeEditItemSubmit();
+  const submit = makeItemFormSubmit('edit', 'save', 'save');
   form.appendChild(submit);
 
   return form;
 };
 
-const makeEditItemSubmit = () => {
-  const container = document.createElement('div');
-  container.id = 'submit-edit-form';
-  const input = document.createElement('input');
-  input.type = 'submit';
-  input.id = 'save';
-  input.value = 'save';
-  container.appendChild(input);
-
-  return container;
-};
-
-const makeEditProjectForm = (id) => {
+export const makeEditProjectForm = (id) => {
   const title = projects.getProjectProp(id, 'title');
   const description = projects.getProjectProp(id, 'description');
   const priority = projects.getProjectProp(id, 'priority');
   const form = makeEditItemFormBody(title, description, priority);
 
   let date = projects.getProjectProp(id, 'dueDate');
-  console.log(date);
   date = makeFormInputDate('date', 'date', format(date.seconds * 1000, 'yyyy-MM-dd'));
   const ref = form.querySelector('input[id=description]');
   insertAfter(date, ref);
@@ -78,7 +66,7 @@ const makeEditProjectForm = (id) => {
   return form;
 };
 
-const makeEditTodoForm = (todoId) => {
+export const makeEditTodoForm = (todoId) => {
   const projectId = projects.getProjectPropFromTodoId(todoId, 'id');
 
   const title = projects.getTodoProp(projectId, todoId, 'title');
@@ -105,7 +93,7 @@ const makeEditTodoForm = (todoId) => {
   return form;
 };
 
-const makeEditItemForm = (id) => {
+export const makeEditItemForm = (id) => {
   const item = document.getElementById(id);
 
   let location = 'home'; let type = item.classList[1];
@@ -135,7 +123,7 @@ const showEdiItemFromHome = (form) => {
   const container = document.getElementById('home-items');
 
   const control = document.getElementById('home-controls-add');
-  sortHideItemControls(control, 'home', true);
+  switchItemControl(control, 'home', true);
 
   clearContainerOfElements(container, 'form');
   container.prepend(form);
@@ -150,7 +138,7 @@ const showEditTodoFromProject = (form) => {
   const container = project.querySelector('.project-todos-list');
 
   const control = project.querySelector('#project-add-todo');
-  sortHideItemControls(control, 'project', true);
+  switchItemControl(control, 'project', true);
 
   clearContainerOfElements(container, 'form');
   container.prepend(form);
@@ -174,25 +162,7 @@ export const showEditItem = (e) => {
   return true;
 };
 
-const editItemOnHomeList = (id, props) => {
-  const item = document.getElementById(id);
-  const type = item.classList[1];
-
-  const keys = ['title', 'description', 'dueDate', 'priority'];
-  keys.forEach((key) => {
-    const container = item.querySelector(`[class*=${key}]`);
-    container.textContent = props[key];
-  });
-
-  if (type === 'todo') {
-    const container = item.querySelector('[class*=project]');
-    container.textContent = props.project;
-  }
-
-  return true;
-};
-
-const editProjectData = async (e, id) => {
+export const editProjectData = async (e, id) => {
   const props = getItemPropsFromForm('project', e);
 
   props.dueDate = new Date(props.dueDate);
@@ -204,7 +174,7 @@ const editProjectData = async (e, id) => {
   return id;
 };
 
-const editTodoData = async (e, todoId) => {
+export const editTodoData = async (e, todoId) => {
   let { project, ...props } = getItemPropsFromForm('todo', e);
   const newProjectId = projects.getProjectIdFromProp('title', project);
   const originalProjectId = projects.getProjectPropFromTodoId(todoId, 'id');
@@ -233,13 +203,13 @@ const editTodoData = async (e, todoId) => {
   return todoId;
 };
 
-const editProject = async (e, id) => {
+export const editProject = async (e, id) => {
   const props = getItemPropsFromForm('project', e);
 
   await editProjectData(e, id);
   editItemOnHomeList(id, props);
 
-  hideAddItemFromHome(e);
+  hideAddEditItemFormFromHome(e);
 
   return true;
 };
@@ -256,22 +226,22 @@ const editTodoOnProjectList = (id, props) => {
   return true;
 };
 
-const editTodo = async (e, id) => {
+export const editTodo = async (e, id) => {
   const props = getItemPropsFromForm('todo', e);
   const location = e.target.classList[1].match(/(?<=-)\w+$/)[0];
 
   await editTodoData(e, id);
 
   switch (location) {
-    case 'home': { editItemOnHomeList(id, props); hideAddItemFromHome(e); break; }
-    case 'project': { editTodoOnProjectList(id, props); hideAddTodoFromProject(e); break; }
+    case 'home': { editItemOnHomeList(id, props); hideAddEditItemFormFromHome(); break; }
+    case 'project': { editTodoOnProjectList(id, props); hideAddEditTodoFormFromProject(e); break; }
     default: console.log(`editTodo: sorry, we are out of ${location}.`);
   }
 
   return true;
 };
 
-const processEditItem = async (e) => {
+export const processEditItem = async (e) => {
   e.preventDefault();
 
   const { type } = e.target;

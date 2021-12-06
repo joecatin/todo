@@ -10,10 +10,9 @@
 /* eslint-disable default-case */
 
 import { format } from 'date-fns';
-import { showEditItem } from './forms/forms';
+import { showEditItem } from './forms/editItem';
 import { switchItemControl } from './forms/utils';
 import { showAddItem } from './forms/addItem';
-
 import { sort, sortedIndex } from '../model/utils';
 import {
   addItemToFirestore, deleteProjectFromFirestore, deleteTodoFromFirestore,
@@ -22,10 +21,11 @@ import {
 
 export const getHomeType = () => {
   const home = document.getElementById('home');
+
   return home.type;
 };
 
-export const setHomeType = (type) => {
+const setHomeType = (type) => {
   const home = document.getElementById('home');
   home.type = type;
 
@@ -107,6 +107,7 @@ const makeDetails = (type, date, priority) => {
   details.appendChild(dueDate);
   priority = makeElement('div', `${type}-priority`, priority);
   details.appendChild(priority);
+
   return details;
 };
 
@@ -167,6 +168,7 @@ const makeElement = (type, className, content) => {
   const element = document.createElement(type);
   element.classList.add(className);
   element.innerHTML = content;
+
   return element;
 };
 
@@ -294,6 +296,8 @@ export const showItems = (items, type, ...sortArgs) => {
     item.type = type;
     item = showItem(item);
   });
+
+  return true;
 };
 
 const getSortParamsFromHome = () => {
@@ -379,6 +383,8 @@ export const addItemToItemsList = (item) => {
     case 'add-todo-project': { addTodoToProjectTodosList(item); break; }
     default: console.log(`addItemToItemsList: sorry, we are out of ${type}.`);
   }
+
+  return true;
 };
 
 export const addItem = async (type, item, projectId = null) => {
@@ -486,4 +492,22 @@ export const getProjectPropFromTodoId = (todoId, key) => {
   }
 
   return prop;
+};
+
+export const editItemOnHomeList = (id, props) => {
+  const item = document.getElementById(id);
+  const type = item.classList[1];
+
+  const keys = ['title', 'description', 'dueDate', 'priority'];
+  keys.forEach((key) => {
+    const container = item.querySelector(`[class*=${key}]`);
+    container.textContent = props[key];
+  });
+
+  if (type === 'todo') {
+    const container = item.querySelector('[class*=project]');
+    container.textContent = props.project;
+  }
+
+  return true;
 };

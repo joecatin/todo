@@ -14,8 +14,9 @@
 import { Timestamp } from 'firebase/firestore';
 import { addYears, format } from 'date-fns';
 import { projects } from '../../model/firestore';
-import { showAddItem } from './forms';
+import { showAddItem } from './addItem';
 import { clearContainerOfElements } from '../utils';
+import './forms.css';
 
 export const priorityLevels = ['high', 'moderate', 'low'];
 

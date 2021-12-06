@@ -11,7 +11,7 @@
 /* eslint-disable no-bitwise */
 /* eslint-disable no-await-in-loop */
 
-import { fetchProjects, projects } from './firestore';
+import { fetchProjects } from './firestore';
 
 export const sort = (arr, by, desc = true) => {
   switch (desc) {
@@ -23,7 +23,7 @@ export const sort = (arr, by, desc = true) => {
   return arr;
 };
 
-export const getProjectIdByProp = async (key, value) => {
+const getProjectIdByProp = async (key, value) => {
   const projects = await fetchProjects();
 
   return projects.filter((project) => project[key] === value)[0].id;
@@ -33,6 +33,8 @@ export const asyncForEach = async (array, callback) => {
   for (let index = 0; index < array.length; index++) {
     await callback(array[index], index, array);
   }
+
+  return true;
 };
 
 export const sortedIndex = (array, value, desc = false) => {
@@ -51,7 +53,7 @@ export const sortedIndex = (array, value, desc = false) => {
   return low;
 };
 
-export const insertInSortedArray = (array, value) => {
+const insertInSortedArray = (array, value) => {
   const index = sortedIndex(array, value);
   array[index] = value;
 
