@@ -24,7 +24,8 @@ import {
   priorityLevels, switchItemControl,
 } from './utils';
 import {
-  adjustHeight, clearContainerOfElements, editItemOnHomeList, insertAfter 
+  adjustHeight, clearContainerOfElements, editItemOnHomeList, editTodoOnProjectList,
+  insertAfter,
 } from '../utils';
 import { validateFormAddTodo } from '../../model/forms';
 
@@ -210,18 +211,6 @@ export const editProject = async (e, id) => {
   editItemOnHomeList(id, props);
 
   hideAddEditItemFormFromHome(e);
-
-  return true;
-};
-
-const editTodoOnProjectList = (id, props) => {
-  const todo = document.getElementById(id);
-
-  const keys = ['title', 'description', 'dueDate', 'priority'];
-  keys.forEach((key) => {
-    const container = todo.querySelector(`[class*=${key}]`);
-    container.textContent = props[key];
-  });
 
   return true;
 };

@@ -12,7 +12,7 @@
 
 import { initializeApp } from 'firebase/app';
 import {
-  addDoc, getFirestore, collection, deleteDoc, doc, getDoc,
+  addDoc, getFirestore, collection, deleteDoc, doc,
   getDocs, query, setDoc, writeBatch,
 } from 'firebase/firestore';
 import firebaseConfig from '../config/firebase';

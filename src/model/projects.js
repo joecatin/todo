@@ -71,7 +71,7 @@ const withProjectHandler = (projects) => ({
 
     return id;
   },
-  addProject: (project) => { console.log('addProject called.'); projects.push(project); return project.id; },
+  addProject: (project) => { projects.push(project); return project.id; },
 });
 
 const withTodosHandler = (projects) => ({

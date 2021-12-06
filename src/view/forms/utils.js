@@ -7,9 +7,9 @@
 /* eslint-disable no-shadow */
 /* eslint-disable no-unused-vars */
 /* eslint-disable import/no-cycle */
+/* eslint-disable import/prefer-default-export */
 /* eslint-disable prefer-destructuring */
 /* eslint-disable prefer-const */
-/* eslint-disable import/prefer-default-export */
 
 import { Timestamp } from 'firebase/firestore';
 import { addYears, format } from 'date-fns';
@@ -143,8 +143,8 @@ export const hideAddEditItemFormFromHome = () => {
 };
 
 export const hideAddEditTodoFormFromProject = (e) => {
-  const container = e.target.closest("[class='item project']")
-    .querySelector('.project-todos-list');
+  const container = e.target.closest("[class~='project']")
+    .querySelector('[class*=project-todos-list]');
 
   const control = container.parentElement
     .querySelector('.project-todos-header-button');

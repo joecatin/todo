@@ -9,10 +9,16 @@
 /* eslint-disable import/no-cycle */
 /* eslint-disable default-case */
 
+import { Timestamp } from 'firebase/firestore';
 import { format } from 'date-fns';
 import { showEditItem } from './forms/editItem';
 import { switchItemControl } from './forms/utils';
 import { showAddItem } from './forms/addItem';
+import {
+  checkIfItemOverdue, checkIfProjectHasOverdueTodo,
+  showItemAsOverdue, showProjectHasOverdue,
+  sortOverdueStatus, sortProjectOverdueStatus,
+} from './overdue';
 import { sort, sortedIndex } from '../model/utils';
 import {
   addItemToFirestore, deleteProjectFromFirestore, deleteTodoFromFirestore,
@@ -143,6 +149,7 @@ export const adjustHeight = (element, parentRegex) => {
       parent.style.maxHeight = `${parent.scrollHeight + element.scrollHeight}px`;
     }
   }
+
   return element;
 };
 
@@ -152,6 +159,7 @@ const addCollapsibility = (element) => {
   } else {
     element.style.display = 'block';
   }
+
   return element;
 };
 
@@ -185,29 +193,27 @@ export const makeNewItemContainer = (item) => {
   const type = item.type.match(/(?<=-)\w+(?=-)/)[0];
   const location = item.type.match(/(?<=-)\w+$/)[0];
   const container = document.createElement('div');
-  container.id = item.id;
-  container.classList.add('item');
-  container.classList.add(type);
+  const {
+    id, title, description, todos, dueDate, priority, status,
+    projectId, projectTitle,
+  } = item;
+  container.id = id;
+  container.classList.add('item'); container.classList.add(type);
 
-  const title = makeTitle(item.title, type);
-  container.appendChild(title);
+  container.appendChild(makeTitle(title, type));
 
   const content = makeContent(
-    type,
-    item.id,
-    item.description,
-    (type === 'project') ? item.todos : [],
-    item.dueDate,
-    item.priority,
-    item.status,
-    (type !== 'project') ? item.projectId : null,
+    type, id, description, (todos !== null) ? item.todos : [],
+    dueDate, priority, status, projectId,
   );
   container.appendChild(content);
+
+  if (checkIfItemOverdue(item)) { showItemAsOverdue(container); }
 
   if (type === 'todo' && location === 'home') {
     const project = document.createElement('div');
     project.classList.add('todo-project');
-    project.textContent = `project: ${item.projectTitle}`;
+    project.textContent = `project: ${projectTitle}`;
     container.appendChild(project);
   }
 
@@ -216,29 +222,27 @@ export const makeNewItemContainer = (item) => {
 
 export const makeItemContainer = (item, type) => {
   const container = document.createElement('div');
-  container.id = item.id;
-  container.classList.add('item');
-  container.classList.add(type);
+  const {
+    id, title, description, todos, dueDate, priority, status,
+    projectId, projectTitle,
+  } = item;
+  container.id = id;
+  container.classList.add('item'); container.classList.add(type);
 
-  const title = makeTitle(item.title, type);
-  container.appendChild(title);
+  container.appendChild(makeTitle(title, type));
 
   const content = makeContent(
-    type,
-    item.id,
-    item.description,
-    (type === 'project') ? item.todos : [],
-    item.dueDate,
-    item.priority,
-    item.status,
-    (type !== 'project') ? item.projectId : null,
+    type, id, description, (todos !== null) ? item.todos : [],
+    dueDate, priority, status, projectId,
   );
   container.appendChild(content);
+
+  if (checkIfItemOverdue(item)) { showItemAsOverdue(container); }
 
   if (type === 'todo') {
     const project = document.createElement('div');
     project.classList.add('todo-project');
-    project.textContent = `project: ${item.projectTitle}`;
+    project.textContent = `project: ${projectTitle}`;
     container.appendChild(project);
   }
 
@@ -246,9 +250,9 @@ export const makeItemContainer = (item, type) => {
 };
 
 export const showItem = (item) => {
-  const { type } = item;
+  const { id, projectId, type } = item;
   const container = document.createElement('div');
-  container.id = item.id;
+  container.id = id;
   container.classList.add('item');
   container.classList.add(type);
 
@@ -256,27 +260,28 @@ export const showItem = (item) => {
   container.appendChild(title);
 
   const content = makeContent(
-    type,
-    item.id,
-    item.description,
-    (type === 'project') ? item.todos : [],
-    item.dueDate,
-    item.priority,
-    item.status,
-    (type !== 'project') ? item.projectId : null,
+    type, id, item.description, (type === 'project') ? item.todos : [],
+    item.dueDate, item.priority, item.status, projectId,
   );
   container.appendChild(content);
 
-  if (type === 'todo') {
-    const project = document.createElement('div');
-    project.classList.add('todo-project');
-    project.textContent = `project: ${item.projectTitle}`;
-    container.appendChild(project);
+  if (checkIfItemOverdue(item)) { showItemAsOverdue(container); }
+
+  switch (type) {
+    case 'project': {
+      if (checkIfProjectHasOverdueTodo(item)) { showProjectHasOverdue(container); }
+      break;
+    }
+    case 'todo': {
+      const project = document.createElement('div');
+      project.classList.add('todo-project');
+      project.textContent = `project: ${item.projectTitle}`;
+      container.appendChild(project); break;
+    }
   }
 
   switch (type) {
-    case 'project':
-    case 'todo': {
+    case 'project': case 'todo': {
       const destination = document.getElementById('home-items-list');
       destination.appendChild(container);
       return true;
@@ -403,8 +408,7 @@ export const addItem = async (type, item, projectId = null) => {
       );
       break;
     }
-    default:
-      console.log(`AddItem: sorry, we are out of ${itemType}.`);
+    default: console.log(`AddItem: sorry, we are out of ${itemType}.`);
   }
 
   return itemId;
@@ -504,10 +508,29 @@ export const editItemOnHomeList = (id, props) => {
     container.textContent = props[key];
   });
 
+  props.dueDate = Timestamp.fromDate(new Date(props.dueDate));
+  sortOverdueStatus(props, item);
+
   if (type === 'todo') {
     const container = item.querySelector('[class*=project]');
-    container.textContent = props.project;
+    container.textContent = `project: ${props.project}`;
   }
+
+  return true;
+};
+
+export const editTodoOnProjectList = (id, props) => {
+  const todo = document.getElementById(id);
+
+  const keys = ['title', 'description', 'dueDate', 'priority'];
+  keys.forEach((key) => {
+    const container = todo.querySelector(`[class*=${key}]`);
+    container.textContent = props[key];
+  });
+
+  props.dueDate = Timestamp.fromDate(new Date(props.dueDate));
+  sortOverdueStatus(props, todo);
+  sortProjectOverdueStatus(id, props.dueDate);
 
   return true;
 };
