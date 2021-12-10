@@ -11,24 +11,48 @@
 
 import { Timestamp } from 'firebase/firestore';
 import { format } from 'date-fns';
-import { showEditItem } from './forms/editItem';
-import { switchItemControl } from './forms/utils';
 import { showAddItem } from './forms/addItem';
+import { showEditItem } from './forms/editItem';
+import {
+  hideAddEditItemFormFromHome, hideAddEditTodoFormFromProject,
+  switchItemControl,
+} from './forms/utils';
 import {
   checkIfItemOverdue, checkIfProjectHasOverdueTodo,
   showItemAsOverdue, showProjectHasOverdue,
-  sortOverdueStatus, sortProjectOverdueStatus,
+  sortItemOverdueStatus, sortParentProjectHasOverdueStatus,
 } from './overdue';
-import { sort, sortedIndex } from '../model/utils';
+import { toggleStatus } from './status';
+import { intersect, sort, sortedIndex } from '../model/utils';
 import {
   addItemToFirestore, deleteProjectFromFirestore, deleteTodoFromFirestore,
   projects,
 } from '../model/firestore';
 
+const types = ['todo', 'project', 'project-todo'];
+
 export const getHomeType = () => {
   const home = document.getElementById('home');
 
   return home.type;
+};
+
+const makeElement = (
+  containerType, className = null, content = null, typeAttribute = null, idAttribute = null,
+  eventListener = { type: null, callback: null },
+) => {
+  const element = document.createElement(containerType);
+  element.classList.add(className); element.innerHTML = content;
+  element.type = typeAttribute; element.id = idAttribute;
+  element.addEventListener(eventListener.type, eventListener.callback);
+
+  return element;
+};
+
+const makeDiv = (className, content, typeAttribute, idAttribute, eventListener) => {
+  const div = makeElement('div', className, content, typeAttribute, idAttribute, eventListener);
+
+  return div;
 };
 
 const setHomeType = (type) => {
@@ -39,26 +63,19 @@ const setHomeType = (type) => {
 };
 
 const makeTodosHeader = () => {
-  const header = document.createElement('div');
-  header.classList.add('project-todos-header');
-  const headline = document.createElement('div');
-  headline.textContent = 'In the pipe:';
-  headline.classList.add('project-todos-header-text');
+  const header = makeDiv('project-todos-header');
+  const headline = makeDiv('project-todos-header-text', 'In the pipe:');
   header.appendChild(headline);
-  const add = document.createElement('div');
-  add.textContent = 'add';
-  add.classList.add('project-todos-header-button');
-  add.type = 'todo';
-  add.id = 'project-add-todo';
-  add.addEventListener('click', showAddItem);
+  const add = makeDiv(
+    'project-todos-header-button', 'add', 'todo', 'project-add-todo', { type: 'click', callback: showAddItem },
+  );
   header.appendChild(add);
 
   return header;
 };
 
 const makeTodosList = (todos) => {
-  const list = document.createElement('div');
-  list.classList.add('project-todos-list');
+  const list = makeDiv('project-todos-list');
   todos.forEach((item) => {
     item.type = 'project-todo';
     item = showItem(item);
@@ -69,8 +86,7 @@ const makeTodosList = (todos) => {
 };
 
 const makeTodos = (items, type) => {
-  const todos = document.createElement('div');
-  todos.classList.add('project-todos');
+  const todos = makeDiv('project-todos');
 
   if (type === 'project') {
     const header = makeTodosHeader();
@@ -84,30 +100,23 @@ const makeTodos = (items, type) => {
 };
 
 const makeControls = (type, id, status, projectId) => {
-  const controls = document.createElement('div');
-  controls.classList.add('item-controls');
+  const controls = makeDiv('item-controls');
 
-  const edit = makeElement('div', `${type}-edit`, 'edit');
-  edit.type = type;
-  edit.addEventListener('click', showEditItem);
+  const edit = makeDiv(`${type}-edit`, 'edit', type, null, { type: 'click', callback: showEditItem });
   controls.appendChild(edit);
 
-  const statusElement = makeElement('div', `${type}-status`, status);
+  const statusElement = makeDiv(`${type}-status`, status, null, null, { type: 'click', callback: toggleStatus });
   controls.appendChild(statusElement);
 
-  const del = makeElement('div', `${type}-delete`, 'delete');
-  del.type = type;
-  del.id = id;
+  const del = makeDiv(`${type}-delete`, 'delete', type, id, { type: 'click', callback: deleteItem });
   del.projectId = projectId;
-  del.addEventListener('click', deleteItem);
   controls.appendChild(del);
 
   return controls;
 };
 
 const makeDetails = (type, date, priority) => {
-  const details = document.createElement('div');
-  details.classList.add('item-details');
+  const details = makeDiv('item-details');
   date = format(date.toDate(), 'yyyy-MM-dd');
   const dueDate = makeElement('div', `${type}-dueDate`, date);
   details.appendChild(dueDate);
@@ -120,9 +129,8 @@ const makeDetails = (type, date, priority) => {
 function makeContent(
   type, id, description, todos = null, date, priority, status, projectId = null,
 ) {
-  const content = document.createElement('div');
-  content.classList.add('item-content');
-  description = makeElement('div', `${type}-description`, description);
+  const content = makeDiv('item-content');
+  description = makeDiv(`${type}-description`, description);
   content.appendChild(description);
 
   const details = makeDetails(type, date, priority);
@@ -153,38 +161,35 @@ export const adjustHeight = (element, parentRegex) => {
   return element;
 };
 
+export const collapseItem = (item) => {
+  const title = item.querySelector('[class~=item-title]');
+  toggleElementClass(title, 'title-active', false);
+  const content = item.querySelector('[class~=item-content]');
+  content.style.display = 'none';
+
+  adjustHeight(content, 'div[class$=content]');
+
+  return true;
+};
+
 const addCollapsibility = (element) => {
-  if (element.style.display === 'block') {
-    element.style.display = 'none';
-  } else {
-    element.style.display = 'block';
-  }
+  element.style.display = (element.style.display === 'block') ? 'none' : 'block';
 
   return element;
 };
 
-const makeElementCollapsible = (element) => {
-  element.classList.toggle('item-active');
-  const content = element.nextElementSibling;
+export const toggleCollapse = (e) => {
+  e.target.classList.toggle('title-active');
+  const content = e.target.nextElementSibling;
+
   addCollapsibility(content);
   adjustHeight(content, 'div[class$=content]');
 
-  return element;
-};
-
-const makeElement = (type, className, content) => {
-  const element = document.createElement(type);
-  element.classList.add(className);
-  element.innerHTML = content;
-
-  return element;
+  return true;
 };
 
 const makeTitle = (text) => {
-  const title = makeElement('button', 'item-title', text);
-  title.addEventListener('click', () => {
-    makeElementCollapsible(title);
-  }, false);
+  const title = makeElement('button', 'item-title', text, null, null, { type: 'click', callback: toggleCollapse });
 
   return title;
 };
@@ -192,13 +197,12 @@ const makeTitle = (text) => {
 export const makeNewItemContainer = (item) => {
   const type = item.type.match(/(?<=-)\w+(?=-)/)[0];
   const location = item.type.match(/(?<=-)\w+$/)[0];
-  const container = document.createElement('div');
   const {
     id, title, description, todos, dueDate, priority, status,
     projectId, projectTitle,
   } = item;
-  container.id = id;
-  container.classList.add('item'); container.classList.add(type);
+  const container = makeDiv('item', null, null, id);
+  container.classList.add(type);
 
   container.appendChild(makeTitle(title, type));
 
@@ -211,9 +215,7 @@ export const makeNewItemContainer = (item) => {
   if (checkIfItemOverdue(item)) { showItemAsOverdue(container); }
 
   if (type === 'todo' && location === 'home') {
-    const project = document.createElement('div');
-    project.classList.add('todo-project');
-    project.textContent = `project: ${projectTitle}`;
+    const project = makeDiv('todo-project', `project: ${projectTitle}`);
     container.appendChild(project);
   }
 
@@ -221,13 +223,13 @@ export const makeNewItemContainer = (item) => {
 };
 
 export const makeItemContainer = (item, type) => {
-  const container = document.createElement('div');
   const {
     id, title, description, todos, dueDate, priority, status,
     projectId, projectTitle,
   } = item;
   container.id = id;
-  container.classList.add('item'); container.classList.add(type);
+  const container = makeDiv('item', null, null, id);
+  container.classList.add(type);
 
   container.appendChild(makeTitle(title, type));
 
@@ -240,9 +242,7 @@ export const makeItemContainer = (item, type) => {
   if (checkIfItemOverdue(item)) { showItemAsOverdue(container); }
 
   if (type === 'todo') {
-    const project = document.createElement('div');
-    project.classList.add('todo-project');
-    project.textContent = `project: ${projectTitle}`;
+    const project = makeDiv('todo-project', `project: ${projectTitle}`);
     container.appendChild(project);
   }
 
@@ -251,9 +251,7 @@ export const makeItemContainer = (item, type) => {
 
 export const showItem = (item) => {
   const { id, projectId, type } = item;
-  const container = document.createElement('div');
-  container.id = id;
-  container.classList.add('item');
+  const container = makeDiv('item', null, null, id);
   container.classList.add(type);
 
   const title = makeTitle(item.title, type);
@@ -273,9 +271,7 @@ export const showItem = (item) => {
       break;
     }
     case 'todo': {
-      const project = document.createElement('div');
-      project.classList.add('todo-project');
-      project.textContent = `project: ${item.projectTitle}`;
+      const project = makeDiv('todo-project', `project: ${item.projectTitle}`);
       container.appendChild(project); break;
     }
   }
@@ -468,16 +464,26 @@ const deleteTodo = async (projectId, id) => {
   return id;
 };
 
-const deleteItem = async (e) => {
+export const deleteItem = async (e) => {
   const { id, type } = e.target;
-  const list = e.target.closest('div[class$=list]');
 
   switch (type) {
     case 'project': { await deleteProject(id); break; }
-    case 'todo': { const { projectId } = e.target; await deleteTodo(projectId, id); break; }
+    case 'todo': case 'project-todo': {
+      const { projectId } = e.target; await deleteTodo(projectId, id); break;
+    }
     default: console.log(`deleteItem: sorry, we are out of ${type}.`);
   }
 
+  const form = document.querySelector(`[itemid=${id}]`);
+  if (form !== null) {
+    const location = form.getAttribute('location');
+    switch (location) {
+      case 'home': { hideAddEditItemFormFromHome(); break; }
+      case 'project': { hideAddEditTodoFormFromProject(e); break; }
+      default: console.log(`deleteItem: sorry, we are out of ${location}.`);
+    }
+  }
   const item = document.getElementById(id);
   item.remove();
 
@@ -509,7 +515,7 @@ export const editItemOnHomeList = (id, props) => {
   });
 
   props.dueDate = Timestamp.fromDate(new Date(props.dueDate));
-  sortOverdueStatus(props, item);
+  sortItemOverdueStatus(props, item);
 
   if (type === 'todo') {
     const container = item.querySelector('[class*=project]');
@@ -529,8 +535,88 @@ export const editTodoOnProjectList = (id, props) => {
   });
 
   props.dueDate = Timestamp.fromDate(new Date(props.dueDate));
-  sortOverdueStatus(props, todo);
-  sortProjectOverdueStatus(id, props.dueDate);
+  sortItemOverdueStatus(props, todo);
+  sortParentProjectHasOverdueStatus(id, props.dueDate);
 
   return true;
+};
+
+export const getTypeFromDOMItem = (item) => {
+  const type = intersect(item.classList, types);
+  if (type.length > 1) {
+    throw new Error(`getTypeFromDOMItem: more than one item found: ${type.join(', ')}.`);
+  }
+
+  return type[0];
+};
+
+const getTodosFromDOMProject = (item) => {
+  const todos = [];
+  Array.from(item.querySelectorAll('.project-todo'))
+    .forEach((todo) => todos.push(getPropsFromDOMItem(todo)));
+
+  return todos;
+};
+
+export const getPropsFromDOMItem = (item) => {
+  let props = {
+    title: null, description: null, dueDate: null, priority: null, status: null,
+  };
+  Object.keys(props).forEach((key) => {
+    const value = item.querySelector(`[class*=${key}]`).textContent;
+    props[key] = value;
+  });
+
+  const type = getTypeFromDOMItem(item);
+  switch (type) {
+    case 'todo': case 'project-todo': {
+      const projectProps = projects.getProjectPropsFromTodoId(item.id, 'projectId', 'projectTitle');
+      props = { ...props, ...projectProps }; break;
+    }
+    case 'project': { props.todos = getTodosFromDOMProject(item); break; }
+    default: console.log(`getPropsFromDOMItem: sorry, we are out of ${type}.`);
+  }
+
+  if (props.dueDate !== null) props.dueDate = Timestamp.fromDate(new Date(props.dueDate));
+  props.id = item.id;
+
+  return props;
+};
+
+export const toggleItemEventListener = (item, type, callback, remove) => {
+  if (remove) {
+    item.removeEventListener(type, callback);
+  } else {
+    item.addEventListener(type, callback);
+  }
+
+  return true;
+};
+
+export const toggleItemsEventListener = (items, type, callback, remove) => {
+  items.forEach((item) => toggleItemEventListener(item, type, callback, remove));
+};
+
+export const toggleElementClass = (element, label, add) => {
+  (add) ? element.classList.add(label) : element.classList.remove(label);
+
+  return element;
+};
+
+export const toggleElementClasses = (element, labels, add) => {
+  labels.forEach((label) => toggleElementClass(element, label, add));
+
+  return element;
+};
+
+export const toggleElementsClass = (elements, label, add) => {
+  elements.forEach((element) => toggleElementClass(element, label, add));
+
+  return elements;
+};
+
+export const toggleElementsClasses = (elements, labels, add) => {
+  elements.forEach((element) => toggleElementClasses(element, labels, add));
+
+  return elements;
 };

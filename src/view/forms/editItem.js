@@ -111,7 +111,8 @@ export const makeEditItemForm = (id) => {
   }
 
   Object.entries({ name: 'edit-item', location, itemId: id })
-    .forEach((x) => { form[x[0]] = x[1]; });
+    // .forEach((x) => { form[x[0]] = x[1]; });
+    .forEach((x) => { form.setAttribute(x[0], x[1]); });
   ['form-edit', `form-edit-${location}`]
     .forEach((x) => form.classList.add(x));
 
@@ -154,10 +155,11 @@ export const showEditItem = (e) => {
   const { id } = e.target.parentElement.closest(`div[class*=${type}]`);
   const form = makeEditItemForm(id);
 
-  switch (form.location) {
+  const location = form.getAttribute('location');
+  switch (location) {
     case 'home': { showEdiItemFromHome(form); break; }
     case 'project': { showEditTodoFromProject(form); break; }
-    default: console.log(`showEditItem: sorry, we are out of ${form.location}.`);
+    default: console.log(`showEditItem: sorry, we are out of ${location}.`);
   }
 
   return true;
@@ -234,7 +236,7 @@ export const processEditItem = async (e) => {
   e.preventDefault();
 
   const { type } = e.target;
-  const id = e.target.itemId;
+  const id = e.target.getAttribute('itemId');
 
   switch (type) {
     case 'project': { await editProject(e, id); break; }

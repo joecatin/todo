@@ -19,7 +19,7 @@
   margin: 1%;
 }
   
-.item-active, .item-title:hover {
+.title-active, .item-title:hover {
   background-color: #ccc;
 }
   
@@ -31,7 +31,7 @@
   margin-left: 5px;
 }
   
-.item-active:after {
+.title-active:after {
   content: "\2796"; /* Unicode character for "minus" sign (-) */
 }
   
@@ -85,3 +85,8 @@
 @keyframes hasOverdue {
   50% { border-color: orange; } 
 }
+
+.done {
+  opacity: 0.3;
+}
+

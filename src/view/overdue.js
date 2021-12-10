@@ -10,9 +10,11 @@
 /* eslint-disable import/prefer-default-export */
 /* eslint-disable default-case */
 
-import { getHomeType } from './utils';
+import { getPropsFromDOMItem } from "./utils";
 
-export const checkIfDatePassed = (date) => {
+export const overdueClasses = ['overdue', 'hasOverdue'];
+
+const checkIfDatePassed = (date) => {
   date = date.setHours(0, 0, 0, 0);
   const today = new Date().setHours(0, 0, 0, 0);
 
@@ -33,24 +35,45 @@ export const checkIfProjectHasOverdueTodo = (project) => {
 };
 
 export const showItemAsOverdue = (item) => item.classList.add('overdue');
-
 export const showItemAsNotOverdue = (item) => item.classList.remove('overdue');
-
 export const showProjectHasOverdue = (item) => item.classList.add('hasOverdue');
-
 export const showProjectHasntOverdue = (item) => item.classList.remove('hasOverdue');
 
-export const sortOverdueStatus = (props, container) => {
-  switch (checkIfItemOverdue(props)) {
+export const sortItemOverdueStatus = (props, container) => {
+  const overdue = checkIfItemOverdue(props);
+  switch (overdue) {
     case true: { showItemAsOverdue(container); break; }
     case false: { showItemAsNotOverdue(container); break; }
-    default: console.log(`sortOverdueStatus: sorry, we are out of ${checkIfItemOverdue(props)}.`);
+    default: console.log(`sortItemOverdueStatus: sorry, we are out of ${overdue}.`);
   }
 
   return true;
 };
 
-export const sortProjectOverdueStatus = (todoId, todoDueDate) => {
+export const sortProjectTodosOverdueStatus = (todos) => {
+  todos.forEach((todo) => {
+    const props = getPropsFromDOMItem(todo);
+    sortItemOverdueStatus(props, todo);
+  });
+
+  return true;
+};
+
+export const sortProjectHasOverdueStatus = (props, container) => {
+  const hasOverdue = checkIfProjectHasOverdueTodo(props);
+  switch (hasOverdue) {
+    case true: { showProjectHasOverdue(container); break; }
+    case false: { showProjectHasntOverdue(container); break; }
+    default: console.log(`sortItemOverdueStatus: sorry, we are out of ${hasOverdue}.`);
+  }
+
+  const todos = Array.from(container.querySelectorAll('[class~=project-todo]'));
+  if (todos.length > 0) sortProjectTodosOverdueStatus(todos);
+
+  return true;
+};
+
+export const sortParentProjectHasOverdueStatus = (todoId, todoDueDate) => {
   const project = document.getElementById(todoId).parentElement
     .closest('[class~=project]');
   const overdue = checkIfDatePassed(new Date(todoDueDate.seconds * 1000));

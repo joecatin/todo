@@ -10,7 +10,10 @@
 /* eslint-disable no-underscore-dangle */
 /* eslint-disable import/prefer-default-export */
 
+import { intersect } from "./utils";
+
 const findItemindex = (items, id) => items.findIndex((item) => item.id === id);
+const projectProps = { projectId: 'id', projectTitle: 'title' };
 
 const withGetter = (projects) => ({
   get: () => projects,
@@ -44,6 +47,20 @@ const withProjectHandler = (projects) => ({
     )[0];
 
     return project[key];
+  },
+  getProjectPropsFromTodoId: (todoId, ...keys) => {
+    const project = projects.filter(
+      (project) => project.todos.filter((todo) => todo.id === todoId).length > 0,
+    )[0];
+
+    const props = {};
+    keys.forEach((key) => {
+      if (Object.keys(projectProps).includes(key)) {
+        props[key] = project[projectProps[key]];
+      } else { props[key] = project[key]; }
+    });
+
+    return props;
   },
   setProject: (id, value) => {
     const index = findItemindex(projects, id);

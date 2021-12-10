@@ -11,8 +11,6 @@
 /* eslint-disable no-bitwise */
 /* eslint-disable no-await-in-loop */
 
-import { fetchProjects } from './firestore';
-
 export const sort = (arr, by, desc = true) => {
   switch (desc) {
     case true: { arr.sort((a, b) => a[by] - b[by]); break; }
@@ -21,12 +19,6 @@ export const sort = (arr, by, desc = true) => {
   }
 
   return arr;
-};
-
-const getProjectIdByProp = async (key, value) => {
-  const projects = await fetchProjects();
-
-  return projects.filter((project) => project[key] === value)[0].id;
 };
 
 export const asyncForEach = async (array, callback) => {
@@ -59,3 +51,5 @@ const insertInSortedArray = (array, value) => {
 
   return array;
 };
+
+export const intersect = (x, y) => Array.from(x).filter((z) => y.includes(z));
