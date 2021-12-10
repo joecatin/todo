@@ -15,11 +15,13 @@ import { overdueClasses, sortItemOverdueStatus, sortProjectHasOverdueStatus } fr
 import {
   collapseItem, deleteItem, getPropsFromDOMItem, getTypeFromDOMItem,
   toggleCollapse, toggleElementsClass,
-  toggleElementClass, toggleItemEventListener, toggleItemsEventListener,
+  toggleElementClass, toggleItemEventListener, toggleItemsEventListener, getProjectPropFromTodoId,
 } from './utils';
 import { showAddItem } from './forms/addItem';
 import { showEditItem } from './forms/editItem';
 import { hideAddEditItemFormFromHome, hideAddEditTodoFormFromProject } from './forms/utils';
+import { setProjectPropInFirestore, setTodoPropInFirestore, setTodosPropInFirestore } from '../model/firestore';
+import { projects } from '../model/firestore';
 
 const toggleProjectTodosStatusEventListeners = (todos, done) => {
   todos.forEach((todo) => {
@@ -48,19 +50,17 @@ const toggleItemStatusEventListeners = (item, type, done) => {
   return true;
 };
 
-const toggleDone = (e) => {
-  hideAddEditItemFormFromHome();
-  hideAddEditTodoFormFromProject(e);
-
+const toggleDoneOnDOM = (e, item, type) => {
+  const todos = item.querySelectorAll('[class~=item]');
   e.target.textContent = 'done';
 
-  let item = e.target.parentElement.closest('[class~=item]');
-  const todos = item.querySelectorAll('[class~=item]');
-
-  const type = getTypeFromDOMItem(item);
-
-  if (type === 'project') {
-    todos.forEach((todo) => toggleDone({ target: todo.querySelector('[class$=status]') }));
+  hideAddEditItemFormFromHome();
+  switch (type) {
+    case 'project': case 'project-todo': {
+      todos.forEach((todo) => toggleDone({ target: todo.querySelector('[class$=status]') })); 
+      hideAddEditTodoFormFromProject(e); break;
+    }
+    default: console.log(`toggleDoneOnDOM: sorry, we are out of ${type}.`);
   }
 
   overdueClasses.forEach((itemClass) => {
@@ -76,15 +76,61 @@ const toggleDone = (e) => {
   return true;
 };
 
-const toggleOpen = (e) => {
-  hideAddEditItemFormFromHome();
-  hideAddEditTodoFormFromProject(e);
+const toggleStatusInFiresotre = async (id, type, status) => {
+  switch (type) {
+    case 'project': {
+      await setProjectPropInFirestore(id, status);
+      await setTodosPropInFirestore(id, status);
+      break;
+    }
+    case 'todo':
+    case 'project-todo': {
+      const projectId = projects.getProjectPropFromTodoId(id, 'id');
+      await setTodoPropInFirestore(projectId, id, status);
+      break;
+    }
+    default: console.log(`toggleStatusInFiresotre: sorry, we are out of ${type}.`);
+  }
 
+  return true;
+};
+
+const toggleStatusInProjects = async (id, type, status) => {
+  switch (type) {
+    case 'project': {
+      projects.setProjectProp(id, 'status', status);
+      projects.setTodosProp(id, 'status', status);
+      break;
+    }
+    case 'todo':
+    case 'project-todo': {
+      const projectId = projects.getProjectPropFromTodoId(id, 'id');
+      projects.setTodoProp(projectId, id, 'status', status);
+      break;
+    }
+    default: console.log(`toggleStatusInProjects: sorry, we are out of ${type}.`);
+  }
+
+  return true;
+};
+
+const toggleDone = async (e) => {
+  const item = e.target.parentElement.closest('[class~=item]');
+  const type = getTypeFromDOMItem(item);
+
+  toggleDoneOnDOM(e, item, type);
+  toggleStatusInProjects(item.id, type, 'done');
+  await toggleStatusInFiresotre(item.id, type, { status: 'done' });
+
+  return true;
+};
+
+const toggleOpenOnDOM = (e, item, type) => {
+  const props = getPropsFromDOMItem(item);
   e.target.textContent = 'open';
 
-  const item = e.target.parentElement.closest('[class~=item]');
-  const props = getPropsFromDOMItem(item);
-  const type = getTypeFromDOMItem(item);
+  hideAddEditItemFormFromHome();
+  if (type === 'project' || type === 'project-todo') hideAddEditTodoFormFromProject(e);
 
   sortItemOverdueStatus(props, item);
   if (type === 'project') {
@@ -97,6 +143,17 @@ const toggleOpen = (e) => {
   item.classList.remove('done');
 
   toggleItemStatusEventListeners(item, type, false);
+
+  return true;
+};
+
+const toggleOpen = async (e) => {
+  const item = e.target.parentElement.closest('[class~=item]');
+  const type = getTypeFromDOMItem(item);
+
+  toggleOpenOnDOM(e, item, type);
+  toggleStatusInProjects(item.id, type, 'open');
+  await toggleStatusInFiresotre(item.id, type, { status: 'open' });
 
   return true;
 };

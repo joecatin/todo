@@ -42,8 +42,10 @@ const makeElement = (
   eventListener = { type: null, callback: null },
 ) => {
   const element = document.createElement(containerType);
-  element.classList.add(className); element.innerHTML = content;
-  element.type = typeAttribute; element.id = idAttribute;
+  element.classList.add(className);
+  if (content !== null) element.innerHTML = content;
+  if (typeAttribute !== null) element.type = typeAttribute;
+  if (idAttribute !== null) element.id = idAttribute;
   element.addEventListener(eventListener.type, eventListener.callback);
 
   return element;
@@ -149,7 +151,8 @@ function makeContent(
 
 export const adjustHeight = (element, parentRegex) => {
   const parent = element.parentElement.closest(parentRegex);
-  if (element.style.maxHeight) {
+
+  if (element.style.maxHeight > 0) {
     element.style.maxHeight = null;
   } else {
     element.style.maxHeight = `${element.scrollHeight}px`;
@@ -262,6 +265,7 @@ export const showItem = (item) => {
     item.dueDate, item.priority, item.status, projectId,
   );
   container.appendChild(content);
+  toggleElementClass(container, 'done', item.status === 'done');
 
   if (checkIfItemOverdue(item)) { showItemAsOverdue(container); }
 

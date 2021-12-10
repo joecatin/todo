@@ -10,8 +10,6 @@
 /* eslint-disable no-underscore-dangle */
 /* eslint-disable import/prefer-default-export */
 
-import { intersect } from "./utils";
-
 const findItemindex = (items, id) => items.findIndex((item) => item.id === id);
 const projectProps = { projectId: 'id', projectTitle: 'title' };
 
@@ -141,6 +139,13 @@ const withTodoHandler = (projects) => ({
     const project = projects[projectIndex];
     const todoIndex = findItemindex(project.todos, todoId);
     projects[projectIndex].todos[todoIndex][key] = value;
+
+    return true;
+  },
+  setTodosProp: (projectId, key, value) => {
+    const projectIndex = findItemindex(projects, projectId);
+    const project = projects[projectIndex];
+    project.todos.forEach((todo) => { todo[key] = value; });
 
     return true;
   },

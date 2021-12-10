@@ -13,7 +13,7 @@
 import { initializeApp } from 'firebase/app';
 import {
   addDoc, getFirestore, collection, deleteDoc, doc,
-  getDocs, query, setDoc, writeBatch,
+  getDocs, query, setDoc, updateDoc, writeBatch,
 } from 'firebase/firestore';
 import firebaseConfig from '../config/firebase';
 import { Projects } from './projects';
@@ -95,6 +95,14 @@ export const addItemToFirestore = async (type, projectId = null, props) => {
   return docRef.id;
 };
 
+export const setProjectPropInFirestore = async (id, prop) => {
+  const project = doc(db, col, id);
+
+  await updateDoc(project, prop);
+
+  return true;
+};
+
 export const setProjectPropsInFirestore = async (id, props) => {
   const batch = writeBatch(db);
 
@@ -106,6 +114,14 @@ export const setProjectPropsInFirestore = async (id, props) => {
   return true;
 };
 
+export const setTodoPropInFirestore = async (projectId, todoId, prop) => {
+  const todo = doc(db, col, projectId, 'todos', todoId);
+
+  await updateDoc(todo, prop);
+
+  return true;
+};
+
 export const setTodoPropsInFirestore = async (projectId, todoId, props) => {
   const batch = writeBatch(db);
 
@@ -113,6 +129,15 @@ export const setTodoPropsInFirestore = async (projectId, todoId, props) => {
   batch.update(todo, props);
 
   await batch.commit();
+
+  return true;
+};
+
+export const setTodosPropInFirestore = async (projectId, prop) => {
+  const todos = collection(db, col, projectId, 'todos');
+
+  const docs = await getDocs(todos);
+  await asyncForEach(docs, async (doc) => await updateDoc(doc, prop));
 
   return true;
 };
