@@ -19,10 +19,12 @@ import {
   makeItemFromAddEditForm,
   priorityLevels, switchItemControl,
 } from './utils';
-import { addItem, adjustHeight, getHomeType } from '../utils';
+import { adjustHeight } from '../utils';
+import { addItem } from '../../model/item';
 import { validateForm } from '../../model/forms';
+import { getHomeType } from '../components/home';
 
-export const makeAddItemFromHomeForm = (type) => {
+const makeAddItemFromHomeForm = (type) => {
   const form = makeAddItemForm('project');
 
   if (type === 'todo') {
@@ -38,7 +40,7 @@ export const makeAddItemFromHomeForm = (type) => {
   return form;
 };
 
-export const makeAddTodoFromProjectForm = () => {
+const makeAddTodoFromProjectForm = () => {
   const form = makeAddItemForm('todo');
   form.type = 'add-todo-project';
 
@@ -81,7 +83,7 @@ const makeAddItemForm = (type) => {
   return form;
 };
 
-export const showAddItemFormFromHome = (form) => {
+const showAddItemFormFromHome = (form) => {
   const items = document.getElementById('home-items');
 
   const control = document.getElementById('home-controls-add');
@@ -93,7 +95,7 @@ export const showAddItemFormFromHome = (form) => {
   return true;
 };
 
-export const showAddTodoFromProject = (form, e) => {
+const showAddTodoFromProject = (form, e) => {
   const container = e.target.parentElement
     .closest('div[class$=header]').nextSibling;
 
@@ -126,7 +128,7 @@ export const showAddItem = (e) => {
   return true;
 };
 
-export const processAddItem = async (e) => {
+const processAddItem = async (e) => {
   e.preventDefault();
 
   const { type } = e.target;

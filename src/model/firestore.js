@@ -59,7 +59,7 @@ const fetchProjectTodos = async (projectId, projectTitle) => {
   return todos;
 };
 
-export const fetchProjects = async () => {
+const fetchProjects = async () => {
   const colRef = collection(db, col);
   const projects = [];
   await getDocs(colRef).then((snapshot) => {

@@ -10,7 +10,7 @@
 /* eslint-disable import/prefer-default-export */
 /* eslint-disable default-case */
 
-import { getPropsFromDOMItem } from "./utils";
+import { getPropsFromDOMItem } from '../components/item';
 
 export const overdueClasses = ['overdue', 'hasOverdue'];
 
@@ -50,7 +50,7 @@ export const sortItemOverdueStatus = (props, container) => {
   return true;
 };
 
-export const sortProjectTodosOverdueStatus = (todos) => {
+const sortProjectTodosOverdueStatus = (todos) => {
   todos.forEach((todo) => {
     const props = getPropsFromDOMItem(todo);
     sortItemOverdueStatus(props, todo);

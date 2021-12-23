@@ -32,13 +32,13 @@ export const getItemPropsFromForm = (type, e) => {
   return props;
 };
 
-export const makeItem = (e) => ({
-  title: e.target.title.value,
-  description: e.target.description.value,
-  dueDate: Timestamp.fromDate(new Date(e.target.date.value)),
-  priority: e.target.priority.value,
-  status: 'open',
-});
+// const makeItem = (e) => ({
+//   title: e.target.title.value,
+//   description: e.target.description.value,
+//   dueDate: Timestamp.fromDate(new Date(e.target.date.value)),
+//   priority: e.target.priority.value,
+//   status: 'open',
+// });
 
 export const makeFormInputText = (type, id, name, text) => {
   const input = document.createElement('input');

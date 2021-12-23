@@ -7,17 +7,14 @@
 /* eslint-disable no-shadow */
 /* eslint-disable no-unused-vars */
 /* eslint-disable import/no-cycle */
+/* eslint-disable import/named */
 /* eslint-disable import/prefer-default-export */
 
-import showHome from './view/home';
+import { showItems, showHome, switchProjectsTodos } from './view/components/home';
 import { showAddItem } from './view/forms/addItem';
-import { showItems, switchProjectsTodos } from './view/utils';
 import { projects } from './model/firestore';
 import './index.css';
-import './view/home.css';
-import './view/item.css';
-import './view/project.css';
-import './view/todo.css';
+import './view/components/todo.css';
 // import populate from './others/populate';
 // populate('todos');
 

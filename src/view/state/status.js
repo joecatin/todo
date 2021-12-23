@@ -7,21 +7,26 @@
 /* eslint-disable no-shadow */
 /* eslint-disable no-unused-vars */
 /* eslint-disable import/no-cycle */
+/* eslint-disable import/named */
 /* eslint-disable import/prefer-default-export */
 /* eslint-disable prefer-destructuring */
 /* eslint-disable prefer-const */
 
 import { overdueClasses, sortItemOverdueStatus, sortProjectHasOverdueStatus } from './overdue';
+import { toggleCollapse, toggleElementClass, toggleElementsClass } from '../utils';
 import {
-  collapseItem, deleteItem, getPropsFromDOMItem, getTypeFromDOMItem,
-  toggleCollapse, toggleElementsClass,
-  toggleElementClass, toggleItemEventListener, toggleItemsEventListener, getProjectPropFromTodoId,
-} from './utils';
-import { showAddItem } from './forms/addItem';
-import { showEditItem } from './forms/editItem';
-import { hideAddEditItemFormFromHome, hideAddEditTodoFormFromProject } from './forms/utils';
-import { setProjectPropInFirestore, setTodoPropInFirestore, setTodosPropInFirestore } from '../model/firestore';
-import { projects } from '../model/firestore';
+  collapseItem,
+  getTypeFromDOMItem, getPropsFromDOMItem,
+  toggleItemEventListener, toggleItemsEventListener,
+} from '../components/item';
+import { showAddItem } from '../forms/addItem';
+import { showEditItem } from '../forms/editItem';
+import { hideAddEditItemFormFromHome, hideAddEditTodoFormFromProject } from '../forms/utils';
+import { deleteItem } from '../../model/item';
+import {
+  projects,
+  setProjectPropInFirestore, setTodoPropInFirestore, setTodosPropInFirestore,
+} from '../../model/firestore';
 
 const toggleProjectTodosStatusEventListeners = (todos, done) => {
   todos.forEach((todo) => {
@@ -57,7 +62,7 @@ const toggleDoneOnDOM = (e, item, type) => {
   hideAddEditItemFormFromHome();
   switch (type) {
     case 'project': case 'project-todo': {
-      todos.forEach((todo) => toggleDone({ target: todo.querySelector('[class$=status]') })); 
+      todos.forEach((todo) => toggleDone({ target: todo.querySelector('[class$=status]') }));
       hideAddEditTodoFormFromProject(e); break;
     }
     default: console.log(`toggleDoneOnDOM: sorry, we are out of ${type}.`);

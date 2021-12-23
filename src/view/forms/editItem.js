@@ -23,13 +23,12 @@ import {
   makeFormInputDate, makeFormInputSelect, makeItemFormSubmit, makeFormInputText,
   priorityLevels, switchItemControl,
 } from './utils';
-import {
-  adjustHeight, clearContainerOfElements, editItemOnHomeList, editTodoOnProjectList,
-  insertAfter,
-} from '../utils';
+import { adjustHeight, clearContainerOfElements, insertAfter } from '../utils';
+import { editItemOnHomeList } from '../components/home';
+import { editTodoOnProjectList } from '../components/project';
 import { validateFormAddTodo } from '../../model/forms';
 
-export const makeEditItemFormBody = (title, description, priority) => {
+const makeEditItemFormBody = (title, description, priority) => {
   const form = document.createElement('form');
 
   title = makeFormInputText('edit', 'title', 'title', title);
@@ -50,7 +49,7 @@ export const makeEditItemFormBody = (title, description, priority) => {
   return form;
 };
 
-export const makeEditProjectForm = (id) => {
+const makeEditProjectForm = (id) => {
   const title = projects.getProjectProp(id, 'title');
   const description = projects.getProjectProp(id, 'description');
   const priority = projects.getProjectProp(id, 'priority');
@@ -67,7 +66,7 @@ export const makeEditProjectForm = (id) => {
   return form;
 };
 
-export const makeEditTodoForm = (todoId) => {
+const makeEditTodoForm = (todoId) => {
   const projectId = projects.getProjectPropFromTodoId(todoId, 'id');
 
   const title = projects.getTodoProp(projectId, todoId, 'title');
@@ -94,7 +93,7 @@ export const makeEditTodoForm = (todoId) => {
   return form;
 };
 
-export const makeEditItemForm = (id) => {
+const makeEditItemForm = (id) => {
   const item = document.getElementById(id);
 
   let location = 'home'; let type = item.classList[1];
@@ -165,7 +164,7 @@ export const showEditItem = (e) => {
   return true;
 };
 
-export const editProjectData = async (e, id) => {
+const editProjectData = async (e, id) => {
   const props = getItemPropsFromForm('project', e);
 
   props.dueDate = new Date(props.dueDate);
@@ -177,7 +176,7 @@ export const editProjectData = async (e, id) => {
   return id;
 };
 
-export const editTodoData = async (e, todoId) => {
+const editTodoData = async (e, todoId) => {
   let { project, ...props } = getItemPropsFromForm('todo', e);
   const newProjectId = projects.getProjectIdFromProp('title', project);
   const originalProjectId = projects.getProjectPropFromTodoId(todoId, 'id');
@@ -206,7 +205,7 @@ export const editTodoData = async (e, todoId) => {
   return todoId;
 };
 
-export const editProject = async (e, id) => {
+const editProject = async (e, id) => {
   const props = getItemPropsFromForm('project', e);
 
   await editProjectData(e, id);
@@ -217,7 +216,7 @@ export const editProject = async (e, id) => {
   return true;
 };
 
-export const editTodo = async (e, id) => {
+const editTodo = async (e, id) => {
   const props = getItemPropsFromForm('todo', e);
   const location = e.target.classList[1].match(/(?<=-)\w+$/)[0];
 
