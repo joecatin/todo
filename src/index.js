@@ -14,7 +14,6 @@ import { showItems, showHome, switchProjectsTodos } from './view/components/home
 import { showAddItem } from './view/forms/addItem';
 import { projects } from './model/firestore';
 import './index.css';
-import './view/components/todo.css';
 // import populate from './others/populate';
 // populate('todos');
 
